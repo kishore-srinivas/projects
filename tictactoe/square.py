@@ -1,7 +1,7 @@
 class Square:
 
     def __init__(self, location):
-        self.value = ""
+        self.value = " "
         self.location = location
 
     def setValue(self, newValue):
@@ -9,6 +9,9 @@ class Square:
 
     def getValue(self):
         return self.value
+
+    def getLocation(self):
+        return self.location
 
     def setNeighbors(self, neighbors):
         self.neighbors = neighbors
@@ -18,8 +21,8 @@ class Square:
 
     def getMatchingNeighbors(self):
         matchingNeighbors = []
-        for n in getNeighbors():
-            if n.getValue() == self.value:
+        for n in self.getNeighbors():
+            if n[0].getValue() == self.value:
                 matchingNeighbors.append(n)
         return matchingNeighbors
 

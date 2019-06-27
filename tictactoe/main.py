@@ -14,6 +14,16 @@ class Direction(AutoName):
     NORTHWEST = auto()
     SOUTHEAST = auto()
     SOUTHWEST = auto()
+    
+    def getOpposite(self):
+        if (self == self.NORTH): return self.SOUTH
+        if (self == self.SOUTH): return self.NORTH
+        if (self == self.EAST): return self.WEST
+        if (self == self.WEST): return self.EAST
+        if (self == self.NORTHWEST): return self.SOUTHEAST
+        if (self == self.NORTHEAST): return self.SOUTHWEST
+        if (self == self.SOUTHWEST): return self.NORTHEAST
+        if (self == self.SOUTHEAST): return self.NORTHWEST
 
 board = []
 for i in range(9):
@@ -28,4 +38,47 @@ board[6].setNeighbors([[board[3], Direction.NORTH], [board[4], Direction.NORTHEA
 board[7].setNeighbors([[board[6], Direction.WEST], [board[3], Direction.NORTHWEST], [board[4], Direction.NORTH], [board[5], Direction.NORTHEAST], [board[8], Direction.EAST]])
 board[8].setNeighbors([[board[7], Direction.WEST], [board[4], Direction.NORTHWEST], [board[5], Direction.NORTH]])
 
+def drawBoard():
+    print(board[0].getValue(), "|", board[1].getValue(), "|", board[2].getValue())
+    print("----------")
+    print(board[3].getValue(), "|", board[4].getValue(), "|", board[5].getValue())
+    print("----------")
+    print(board[6].getValue(), "|", board[7].getValue(), "|", board[8].getValue())
 
+def isWinner(player, lastPlaced):
+    candidates = board[lastPlaced].getMatchingNeighbors()
+
+    #checks for candidates on opposite sides of the current square
+    for c in candidates:
+        for c2 in candidates:
+            if (c[1] == c2[1].getOpposite()):
+                return True
+                break
+
+    return False
+
+gameOver = False
+for x in range(len(board)):
+    print("This is the board currently: ")
+    drawBoard()
+    player = "X" if x % 2 == 0 else "O"
+    print("You are player", player)
+    while True:
+        try:
+            place = int(input("Where would you like to place? "))
+            while(board[place].getValue() == "X" or board[place].getValue() == "O"):
+                place = int(input("That square is already taken. Select another square: "))
+            board[place].setValue(player)
+            print("===================")
+            if (isWinner(player, place)):
+                print("Congratulations player", player, "you have won!")
+                drawBoard()
+                gameOver = True
+            break
+        except ValueError:
+            print("Enter a number between 0 and 8")
+        except IndexError:
+            print("Enter a number between 0 and 8")
+    if (gameOver):
+        break
+    
