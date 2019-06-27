@@ -39,11 +39,11 @@ board[7].setNeighbors([[board[6], Direction.WEST], [board[3], Direction.NORTHWES
 board[8].setNeighbors([[board[7], Direction.WEST], [board[4], Direction.NORTHWEST], [board[5], Direction.NORTH]])
 
 def drawBoard():
-    print(board[0].getValue(), "|", board[1].getValue(), "|", board[2].getValue())
-    print("----------")
-    print(board[3].getValue(), "|", board[4].getValue(), "|", board[5].getValue())
-    print("----------")
-    print(board[6].getValue(), "|", board[7].getValue(), "|", board[8].getValue())
+    print(" ", board[0].getValue(), "|", board[1].getValue(), "|", board[2].getValue())
+    print("  ----------")
+    print(" ", board[3].getValue(), "|", board[4].getValue(), "|", board[5].getValue())
+    print("  ----------")
+    print(" ", board[6].getValue(), "|", board[7].getValue(), "|", board[8].getValue())
 
 def isWinner(player, lastPlaced):
     candidates = board[lastPlaced].getMatchingNeighbors()
@@ -53,13 +53,34 @@ def isWinner(player, lastPlaced):
         for c2 in candidates:
             if (c[1] == c2[1].getOpposite()):
                 return True
-                break
+
+    #pursue lines in the directions of the matching neighbors
+    while (len(candidates) > 0):
+        toCheck = candidates[0]
+        print("toCheck:", toCheck)
+        secondaryNeighbors = toCheck[0].getMatchingNeighbors()
+        for s in secondaryNeighbors:
+            if (s[1] == toCheck[1]):
+                print(s[0].getLocation())
+                print(toCheck[0].getLocation())
+                return True
+        candidates.remove(candidates[0])
 
     return False
 
+print("Welcome to TicTacToe!")
+print("These are the locations on the board:")
+print("  0 | 1 | 2")
+print(" -----------")
+print("  3 | 4 | 5")
+print(" -----------")
+print("  6 | 7 | 8")
+print("Type the number of a square to place your symbol in that square\n")
+input("Press <ENTER> when you are ready to play")
+print("=========================================\n")
+
 gameOver = False
 for x in range(len(board)):
-    print("This is the board currently: ")
     drawBoard()
     player = "X" if x % 2 == 0 else "O"
     print("You are player", player)
@@ -71,8 +92,8 @@ for x in range(len(board)):
             board[place].setValue(player)
             print("===================")
             if (isWinner(player, place)):
-                print("Congratulations player", player, "you have won!")
                 drawBoard()
+                print("<<<<< Congratulations player", player, "you have won! >>>>>")
                 gameOver = True
             break
         except ValueError:
@@ -81,4 +102,7 @@ for x in range(len(board)):
             print("Enter a number between 0 and 8")
     if (gameOver):
         break
+
+drawBoard()
+print("Good game! That was a draw.")
     
