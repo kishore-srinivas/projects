@@ -1,4 +1,4 @@
-from board import board, drawBoard, isWinner
+from board import Board
 
 print("Welcome to TicTacToe!")
 print("These are the locations on the board:")
@@ -11,20 +11,22 @@ print("Type the number of a square to place your symbol in that square\n")
 input("Press <ENTER> when you are ready to play")
 print("=========================================\n")
 
+board = Board(3, 3)
+
 gameOver = False
-for x in range(len(board)):
-    drawBoard()
+for x in range(board.getSize()):
+    board.draw()
     player = "X" if x % 2 == 0 else "O"
     print("You are player", player)
     while True:
         try:
             place = int(input("Where would you like to place? "))
-            while(board[place].getValue() == "X" or board[place].getValue() == "O"):
+            while(board.get(place).getValue() == "X" or board.get(place).getValue() == "O"):
                 place = int(input("That square is already taken. Select another square: "))
-            board[place].setValue(player)
+            board.get(place).setValue(player)
             print("===================")
-            if (isWinner(player, place)):
-                drawBoard()
+            if (board.isWinner(player, place)):
+                board.draw()
                 print("<<<<< Congratulations player", player, "you have won! >>>>>")
                 gameOver = True
             break
@@ -36,6 +38,6 @@ for x in range(len(board)):
         break
 
 if (not gameOver):
-    drawBoard()
+    board.draw()
     print("Good game! That was a draw.")
     

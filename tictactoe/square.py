@@ -3,6 +3,7 @@ class Square:
     def __init__(self, location):
         self.value = " "
         self.location = location
+        self.neighbors = []
 
     def setValue(self, newValue):
         self.value = newValue
@@ -13,8 +14,8 @@ class Square:
     def getLocation(self):
         return self.location
 
-    def setNeighbors(self, neighbors):
-        self.neighbors = neighbors
+    def addNeighbor(self, neighbor):
+        self.neighbors.append(neighbor)
 
     def getNeighbors(self):
         return self.neighbors
