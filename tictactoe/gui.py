@@ -47,4 +47,8 @@ squares[6].grid(row=2, column=0)
 squares[7].grid(row=2, column=1)
 squares[8].grid(row=2, column=2)
 
+T = tk.Text(back, height=2, width=30)
+T.grid(row=0, column=1)
+T.insert(tk.END, "Text")
+
 m.mainloop()
