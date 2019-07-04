@@ -80,7 +80,10 @@ def goToMagnitude(dest, iterations):
                 theta = theta + step
             vectors[n][1] = bestTheta
             leastError = getMagnitude(vectorSum(vectors) - dest)
-        stepScaleFactor = (leastError / errorHistory[1][i-1])
+        try:
+            stepScaleFactor = (leastError / errorHistory[1][i-1])
+        except ZeroDivisionError:
+            return vectors
         if (stepScaleFactor == 1):
             stepScaleFactor = 0.5
         step = step * stepScaleFactor
@@ -89,7 +92,7 @@ def goToMagnitude(dest, iterations):
 
     return vectors
 
-destination = np.array([-30, -30])
+destination = np.array([-6.5, -3.84])
 errorHistory = [[], []]
 vectors = initVectors([15, 2, 6, 3.5])
 maxLength = np.sum(vectors, axis=0)[0]
