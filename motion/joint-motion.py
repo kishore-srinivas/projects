@@ -66,6 +66,7 @@ def goToMagnitude(dest, iterations):
     errorHistory[1].append(leastError)
 
     for i in range(1, iterations):
+        print(i)
         for n in range(len(vectors)):
             bestTheta = vectors[n][1]
             theta = bestTheta - step * 2            
@@ -92,7 +93,7 @@ def goToMagnitude(dest, iterations):
 
     return vectors
 
-destination = np.array([-6.5, -3.84])
+destination = np.array([-17, 13.96])
 errorHistory = [[], []]
 vectors = initVectors([15, 2, 6, 3.5])
 maxLength = np.sum(vectors, axis=0)[0]
