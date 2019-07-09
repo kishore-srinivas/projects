@@ -66,7 +66,6 @@ def goToMagnitude(dest, iterations):
     errorHistory[1].append(leastError)
 
     for i in range(1, iterations):
-        print(i)
         for n in range(len(vectors)):
             bestTheta = vectors[n][1]
             theta = bestTheta - step * 2            
@@ -79,6 +78,15 @@ def goToMagnitude(dest, iterations):
                     leastError = error
                     bestTheta = theta
                 theta = theta + step
+                if (animationMode == True):
+                    # animation
+                    plt.xlim(-1.1*maxLength, 1.1*maxLength)
+                    plt.ylim(-1.1*maxLength, 1.1*maxLength)
+                    plt.grid(alpha = 0.25)
+                    plt.scatter(destination[0], destination[1])
+                    draw(vectors)
+                    plt.pause(0.00001)
+                    plt.cla()
             vectors[n][1] = bestTheta
             leastError = getMagnitude(vectorSum(vectors) - dest)
         try:
@@ -93,13 +101,14 @@ def goToMagnitude(dest, iterations):
 
     return vectors
 
-destination = np.array([-17, 13.96])
+destination = np.array([-0.5, 2.75])
 errorHistory = [[], []]
 vectors = initVectors([15, 2, 6, 3.5])
 maxLength = np.sum(vectors, axis=0)[0]
 print(vectors)
+animationMode = False
 
-iterations = 50
+iterations = 10
 result = goToMagnitude(destination, iterations)
 print("result:", result)
 print("least error:", errorHistory[1][-1])
