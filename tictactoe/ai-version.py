@@ -22,22 +22,20 @@ elif (player.lower() == "o"):
 else:
     print("Invalid input")
 
+''' normalize the distribution so the total is 1 '''
 def normalize(distribution):
     total = np.sum(distribution)
     for i in range(len(distribution)):
         distribution[i] = distribution[i] / total
     return distribution
 
+''' return a distribution that acts as a heat map for the player's likely next move '''
 def predictPlayersMove(board):
     dist = np.ones(board.getSize())
     for i in range(len(dist)):
         if (not board.get(i).isEmpty()):
             dist[i] = 0
     dist = normalize(dist)
-
-    # if the player has only placed one square so far 
-    if (len(board.getAllSquares(player)) == 1):
-        print()
 
     # check for two in a row and predict that player will place the third one in that row
     for square in board.getAllSquares(player):
@@ -48,7 +46,6 @@ def predictPlayersMove(board):
             if likelySquare is not None:
                 location = likelySquare[0].getLocation()
                 dist[location] = dist[location] + 1
-    # dist = normalize(dist)
 
     # check for two squares separated by a gap and predict the player will fill the gap
     for square in board.getAllSquares(player):
@@ -63,22 +60,21 @@ def predictPlayersMove(board):
                 location = firstNeighbor[0].getLocation()
                 dist[location] = dist[location] + 0.5
 
+    # rule out all squares that are already filled
     for i in range(len(dist)):
         if (not board.get(i).isEmpty()):
             dist[i] = 0
-    # dist = normalize(dist)
 
-    # print("playerDist:", dist)
     return dist
 
 def nextBestMove(board):
     playerDist = predictPlayersMove(board)
-    print("playerDist:", playerDist)
-
     computerDist = np.zeros(len(playerDist))
+
     # try to get the center square
     if board.get(4).getValue() == " ":
         computerDist[4] = 2
+
     # check for two in a row and return the third square
     for square in board.getAllSquares(computer):
         mn = square.getMatchingNeighbors()
@@ -89,6 +85,7 @@ def nextBestMove(board):
                 location = winningSquare[0].getLocation()
                 print("winning location:", location)
                 computerDist[location] = computerDist[location] + 1
+    
     # try to get two in a row such that the third square is empty
     for square in board.getAllSquares(computer):
         en = square.getEmptyNeighbors()
@@ -99,9 +96,9 @@ def nextBestMove(board):
                 location = n[0].getLocation()
                 computerDist[location] = computerDist[location] + 0.5
 
-    print("computerDist:", computerDist)
+    # print("computerDist:", computerDist)
     dist = (playerDist + computerDist)
-    print("dist:", dist)
+    # print("dist:", dist)
     return np.where(dist == np.amax(dist))[0]
 
 board = Board(3, 3)
@@ -127,10 +124,10 @@ for x in range(board.getSize()):
             except IndexError:
                 print("Enter a number between 0 and 8")
     else:
-        print("computer's turn")
+        # print("computer's turn")
         while(not board.get(place).isEmpty()):
             place = nextBestMove(board)[0]
-        print("place:", place)
+        # print("place:", place)
         board.get(place).setValue(computer)
         if (board.isWinner(computer, place)):
             board.draw()
