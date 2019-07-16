@@ -36,10 +36,8 @@ class Board:
             board.append(Square(i))
         for i in range(len(board)):
             neighbors = self.calculateNeighbors(i)
-            print(i, ":", neighbors)
             for n in neighbors:
                 board[i].addNeighbor([board[n[0]], n[1]])
-            print(i, ":", board[i].getNeighbors())
 
     def getSize(self):
         return self.width * self.height
@@ -55,6 +53,13 @@ class Board:
         print("  ----------")
         print(" ", board[6].getValue(), "|", board[7].getValue(), "|", board[8].getValue())
 
+    def getAllSquares(self, player):
+        squares = []
+        for i in self.board:
+            if i.getValue() == player:
+                squares.append(i)
+        return squares
+
     def isWinner(self, player, lastPlaced):
         board = self.board
         candidates = board[lastPlaced].getMatchingNeighbors()
@@ -68,7 +73,6 @@ class Board:
         # pursue lines in the directions of the matching neighbors
         while (len(candidates) > 0):
             toCheck = candidates[0]
-            print("toCheck:", toCheck)
             secondaryNeighbors = toCheck[0].getMatchingNeighbors()
             for s in secondaryNeighbors:
                 if (s[1] == toCheck[1]):
