@@ -74,11 +74,6 @@ def predictPlayersMove(board):
 def nextBestMove(board):
     playerDist = predictPlayersMove(board)
     print("playerDist:", playerDist)
-    # playerMoves = np.where(playerDist == np.amax(playerDist))[0]
-    # print("playerMoves:", playerMoves)
-    # if (len(playerMoves) == 1):
-    #     print("only one player move")
-    #     return playerMoves
 
     computerDist = np.zeros(len(playerDist))
     # try to get the center square
@@ -108,7 +103,6 @@ def nextBestMove(board):
     dist = (playerDist + computerDist)
     print("dist:", dist)
     return np.where(dist == np.amax(dist))[0]
-    # return 5
 
 board = Board(3, 3)
 gameOver = False
