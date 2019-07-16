@@ -28,6 +28,7 @@ def vectorSum(vectors):
         tail = calcTip(tail, v[0], v[1])
     return np.array([round(tail[0],3), round(tail[1],3)])
 
+''' draws all vectors passed in, tip to tail '''
 def draw(vectors):
     tail = [0, 0]
     for v in vectors:
@@ -43,29 +44,18 @@ def getMagnitude(vector):
         total = total + i**2
     return math.pow(total, 1/len(vector))
 
+''' 
+returns the positions of all vectors that minimizes the error
+@param dest - the 2D point that the vectors are trying to reach
+@param iterations - the number of times to try
+'''
 def goToMagnitude(dest, iterations):
     theta = 0
     leastError = getMagnitude(vectorSum(vectors) - dest)
     bestTheta = theta
     step = math.pi/2
 
-    for n in range(len(vectors)):
-        while (theta < 2*math.pi):
-            vectors[n][1] = theta
-            end = vectorSum(vectors)
-            error = getMagnitude(end - dest)
-            if (error < leastError):
-                leastError = error
-                bestTheta = theta
-            theta = theta + step
-        vectors[n][1] = bestTheta
-        theta = 0
-        leastError = getMagnitude(vectorSum(vectors) - dest)
-        bestTheta = theta
-    errorHistory[0].append(0)
-    errorHistory[1].append(leastError)
-
-    for i in range(1, iterations):
+    for i in range(iterations):
         for n in range(len(vectors)):
             bestTheta = vectors[n][1]
             theta = bestTheta - step * 2            
@@ -90,8 +80,13 @@ def goToMagnitude(dest, iterations):
             vectors[n][1] = bestTheta
             leastError = getMagnitude(vectorSum(vectors) - dest)
         try:
+            # scale the step by the ratio of current error to previous error (make step smaller as error decreases)
             stepScaleFactor = (leastError / errorHistory[1][i-1])
+        except IndexError:
+            # default step scaling factor
+            stepScaleFactor = 0.5
         except ZeroDivisionError:
+            # if the previous error is already 0, there is no need to go through all the iterations
             return vectors
         if (stepScaleFactor == 1):
             stepScaleFactor = 0.5
