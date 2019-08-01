@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import time
 import matplotlib.pyplot as plt
 ax = plt.axes()
 
@@ -96,14 +97,15 @@ def goToMagnitude(dest, iterations):
 
     return vectors
 
-destination = np.array([-0.5, 2.75])
+start = time.time()
+destination = np.array([10, 10])
 errorHistory = [[], []]
 vectors = initVectors([15, 2, 6, 3.5])
 maxLength = np.sum(vectors, axis=0)[0]
 print(vectors)
 animationMode = False
 
-iterations = 10
+iterations = 50
 result = goToMagnitude(destination, iterations)
 print("result:", result)
 print("least error:", errorHistory[1][-1])
@@ -116,5 +118,8 @@ draw(result)
 
 plt.figure(num="Iterations vs Error")
 plt.plot(errorHistory[0], errorHistory[1])
+
+end = time.time()
+print(end - start)
 
 plt.show()
