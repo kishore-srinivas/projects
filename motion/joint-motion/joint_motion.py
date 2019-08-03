@@ -50,8 +50,9 @@ def getMagnitude(vector):
 returns the positions of all vectors that minimizes the error
 @param dest - the 2D point that the vectors are trying to reach
 @param iterations - the number of times to try
+@param vectors - the vectors to sum to dest
 '''
-def goToMagnitude(dest, iterations):
+def goToMagnitude(dest, iterations, vectors, animationMode, maxLength, errorHistory):
     theta = 0
     leastError = getMagnitude(vectorSum(vectors) - dest)
     bestTheta = theta
@@ -75,7 +76,7 @@ def goToMagnitude(dest, iterations):
                     plt.xlim(-1.1*maxLength, 1.1*maxLength)
                     plt.ylim(-1.1*maxLength, 1.1*maxLength)
                     plt.grid(alpha = 0.25)
-                    plt.scatter(destination[0], destination[1])
+                    plt.scatter(dest[0], dest[1])
                     draw(vectors)
                     plt.pause(0.00001)
                     plt.cla()
@@ -98,60 +99,26 @@ def goToMagnitude(dest, iterations):
 
     return vectors
 
-start = time.time()
-destination = np.array([10, 10])
-errorHistory = [[], []]
-vectors = initVectors([15, 2, 6, 3.5])
-maxLength = np.sum(vectors, axis=0)[0]
-print(vectors)
-animationMode = False
+def calculate(destination, vectorLengths, animationMode, iterations):
+    # destination = np.array([10, 10])
+    errorHistory = [[], []]
+    vectors = initVectors(vectorLengths)
+    maxLength = np.sum(vectors, axis=0)[0]
+    print(vectors)
+    print("animation:", animationMode)
 
-# def debug(entries):
-#     print(entries)
+    iterations = 50
+    result = goToMagnitude(destination, iterations, vectors, animationMode, maxLength, errorHistory)
+    print("result:", result)
+    print("least error:", errorHistory[1][-1])
 
-# fields = ('Destination', 'Number of Payments', 'Loan Principle', 'Monthly Payment', 'Remaining Loan')
-# def makeform(root, fields):
-#     entries = {}
-#     for field in fields:
-#         print(field)
-#         row = tk.Frame(root)
-#         lab = tk.Label(row, width=22, text=field+": ", anchor='w')
-#         ent = tk.Entry(row)
-#         ent.insert(0, "0")
-#         row.pack(side=tk.TOP, 
-#                  fill=tk.X, 
-#                  padx=5, 
-#                  pady=5)
-#         lab.pack(side=tk.LEFT)
-#         ent.pack(side=tk.RIGHT, 
-#                  expand=tk.YES, 
-#                  fill=tk.X)
-#         entries[field] = ent
-#     return entries
+    plt.xlim(-1.1*maxLength, 1.1*maxLength)
+    plt.ylim(-1.1*maxLength, 1.1*maxLength)
+    plt.grid(alpha = 0.25)
+    plt.scatter(destination[0], destination[1])
+    draw(result)
 
-# if __name__ == '__main__':
-#     root = tk.Tk()
-#     ents = makeform(root, fields)
-#     b1 = tk.Button(root, text='Calculate',
-#            command=(lambda e=ents: debug(e)))
-#     b1.pack(side=tk.LEFT, padx=5, pady=5)
-#     root.mainloop()
+    plt.figure(num="Iterations vs Error")
+    plt.plot(errorHistory[0], errorHistory[1])
 
-iterations = 50
-result = goToMagnitude(destination, iterations)
-print("result:", result)
-print("least error:", errorHistory[1][-1])
-
-plt.xlim(-1.1*maxLength, 1.1*maxLength)
-plt.ylim(-1.1*maxLength, 1.1*maxLength)
-plt.grid(alpha = 0.25)
-plt.scatter(destination[0], destination[1])
-draw(result)
-
-plt.figure(num="Iterations vs Error")
-plt.plot(errorHistory[0], errorHistory[1])
-
-end = time.time()
-print(end - start)
-
-plt.show()
+    plt.show()

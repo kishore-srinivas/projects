@@ -1,49 +1,65 @@
 from tkinter import *
+import numpy as np
+import joint_motion
 
 window = Tk() 
-window.geometry('350x200') 
+window.geometry('500x300') 
+frame4 = Frame(window)
+frame4.pack(side=BOTTOM, fill=X, pady=10)
+frame1 = Frame(window)
+frame1.pack(side=LEFT, fill=Y)
+frame2 = Frame(window)
+frame2.pack(side=LEFT, fill=Y, padx=50)
+frame3 = Frame(window)
+frame3.pack(side=LEFT, fill=Y)
 
-destLabel = Label(window, text="Destination", font=("Arial Bold", 18))
-destLabel.grid(column=0, row=0)
-
-destX = Entry(window,width=10) 
+destLabel = Label(frame1, text="Destination", font=("Arial Bold", 18))
+destLabel.pack(fill=X, side=TOP)
+destX = Entry(frame1, width=10) 
 destX.insert(END, 'x')
-destX.grid(column=0, row=1)
+destX.pack(side=TOP)
 destX.focus()
-destY = Entry(window,width=10) 
+destY = Entry(frame1, width=10) 
 destY.insert(END, 'y')
-destY.grid(column=1, row=1)
- 
-def submit():
-    print('destination: (', destX.get(), ', ', destY.get(), ')')
-    # lbl.configure(text=txt.get())
- 
-submit = Button(window, text="Submit", command=submit) 
-submit.grid(column=0, row=2)
+destY.pack(side=TOP)
 
+vectorsLabel = Label(frame2, text="Vectors", font=("Arial Bold", 18))
+vectorsLabel.pack(fill=X, side=TOP)
 vectors = []
 vectorInputs = []
 def displayAdd():
-    vector = Entry(window, width=10)
-    vector.grid(column=2, row=len(vectorInputs)+2)
+    vector = Entry(frame2, width=10)
+    vector.pack(side=TOP)
+    # vector.grid(column=2, row=len(vectorInputs)+2)
+    vector.pack()
     vectorInputs.append(vector)
-def submitVectors():
-    vectors = []
-    for v in vectorInputs:
-        try:
-            vectors.append(int(v.get()))
-        except:
-            continue
-    print(vectors)
 
-displayAdd = Button(window, text="+", command=displayAdd)
-displayAdd.grid(column=2, row=0)
-submitVectors = Button(window, text="Submit Vectors", command=submitVectors)
-submitVectors.grid(column=2, row=1)
+displayAdd = Button(frame2, text="+", command=displayAdd)
+displayAdd.pack(side=TOP)
 
 chk_state = BooleanVar() 
 chk_state.set(False) #set check state 
-animationMode = Checkbutton(window, text='Animation', var=chk_state) 
-animationMode.grid(column=4, row=0)
+animationMode = Checkbutton(frame3, text='Animation', font=("Arial Bold", 18), var=chk_state) 
+animationMode.pack()
+
+def submitCalculation():
+    print('submitting...')
+    try:
+        x = float(destX.get())
+        y = float(destY.get())
+        vectorLengths = []
+        for v in vectorInputs:
+            vectorLengths.append(float(v.get()))
+    except:
+        x = 0
+        y = 0
+        vectorLengths = []
+    destination = np.array([x, y])
+    iterations = 50
+    window.destroy()
+    joint_motion.calculate(destination, vectorLengths, chk_state.get(), iterations)
+
+calculateButton = Button(frame4, text='Calculate', font=("Arial Bold", 12), command=submitCalculation)
+calculateButton.pack(side=BOTTOM, fill=X, padx=10)
  
 window.mainloop()
