@@ -65,7 +65,7 @@ def regionOfInterest(image):
     return maskedImage
 
 ''' for images '''
-# img = cv2.imread('test_image.jpg')
+# img = cv2.imread('images\\test_image.jpg')
 # laneImage = np.copy(img)
 # cannyImage = canny(laneImage)
 # cropped = regionOfInterest(cannyImage)
@@ -79,7 +79,7 @@ def regionOfInterest(image):
 # cv2.waitKey(0)
 
 ''' for videos '''
-cap = cv2.VideoCapture('test2.mp4')
+cap = cv2.VideoCapture('images\\test2.mp4')
 while (cap.isOpened()):
     _, frame = cap.read()
     cannyImage = canny(frame)

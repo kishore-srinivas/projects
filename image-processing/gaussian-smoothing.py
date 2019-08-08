@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-img = cv2.imread('painting.jpg', 0)
+img = cv2.imread('images\\painting.jpg', 0)
 
 print(img[100, 100])
 print(img.item(100, 100))

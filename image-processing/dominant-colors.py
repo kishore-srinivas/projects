@@ -4,7 +4,7 @@ import numpy as np
 ''' figures out the average and dominant colors of an image 
 meant to be used to provide a better backlighting experience '''
 
-img = cv2.imread('abstract.jpg')
+img = cv2.imread('images\\abstract.jpg')
 print(np.shape(img))
 pixels = np.float32(img.reshape(-1, 3))
 
