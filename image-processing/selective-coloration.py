@@ -24,7 +24,7 @@ calculates the euclidean distance between a pixel and a color with a specific bi
 @param color - the BGR color to compare to
 @param bias - the weight to give to each color channel (a higher bias makes it harder to be classified as that color)
 '''
-def euclideanDistance(pixel, color, bias=[1, 1, 1]):
+def euclideanDistance(pixel, color, bias):
     for i in range(len(bias)):
         if (bias[i] < 0):
             bias[i] = 0
@@ -33,14 +33,14 @@ def euclideanDistance(pixel, color, bias=[1, 1, 1]):
     deltaRed = (pixel[2] - color[2]) * bias[2]
     return math.sqrt(deltaBlue ** 2 + deltaGreen ** 2 + deltaRed ** 2)
 
-def isColor(pixel, color, tolerance):
-    distance = euclideanDistance(pixel, color, [.5, 1.5, 0])
+def isColor(pixel, color, tolerance, bias=[1, 1, 1]):
+    distance = euclideanDistance(pixel, color, bias)
     return distance <= tolerance
 
 combo = np.zeros_like(original)
 for y in range(np.shape(original)[0]):
     for x in range(np.shape(original)[1]):
-        if (isColor(original[y, x], [255, 100, 0], 150)):
+        if (isColor(original[y, x], [255, 100, 0], 150), [.5, 1.5, 0]):
             combo[y, x] = original[y, x]
         else:
             combo[y, x] = grayscale[y, x]
