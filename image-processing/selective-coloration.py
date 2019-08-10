@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
+from tkinter import *
 import math
+import time
 
 ''' pseudocode:
 read in image in color and grayscale
@@ -11,12 +13,8 @@ define color clusters based on sensitivity
 classify pixel as a specific cluster
 '''
 
-original = cv2.imread('images\\color-picker.png')
+original = cv2.imread('images\\abstract.jpg')
 grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
-
-redRange = [150, 255]
-blueRange = [200, 255]
-greenRange = [100, 255]
 
 '''
 calculates the euclidean distance between a pixel and a color with a specific bias
@@ -37,13 +35,43 @@ def isColor(pixel, color, tolerance, bias=[1, 1, 1]):
     distance = euclideanDistance(pixel, color, bias)
     return distance <= tolerance
 
-combo = np.zeros_like(original)
-for y in range(np.shape(original)[0]):
-    for x in range(np.shape(original)[1]):
-        if (isColor(original[y, x], [255, 100, 0], 150), [.5, 1.5, 0]):
-            combo[y, x] = original[y, x]
-        else:
-            combo[y, x] = grayscale[y, x]
+def update(color, biases):    
+    print(color, biases)
+    combo = np.zeros_like(original)
+    for y in range(np.shape(original)[0]):
+        for x in range(np.shape(original)[1]):
+            if (isColor(original[y, x], color, 150, biases)):
+                combo[y, x] = original[y, x]
+            else:
+                combo[y, x] = grayscale[y, x]
+
+    result = combo
+    cv2.imshow('result', result)
+    # cv2.waitKey(0)
+
+cv2.namedWindow('result', cv2.WINDOW_NORMAL)
+cv2.imshow('result', original)
+# cv2.waitKey(0)
+
+def main():
+    update([w1.get(), w2.get(), w3.get()], [w4.get(), w5.get(), w6.get()])
+
+master = Tk()
+w1 = Scale(master, label='Blue', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+w1.pack()
+w2 = Scale(master, label='Green', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+w2.pack()
+w3 = Scale(master, label='Red', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+w3.pack()
+w4 = Scale(master, label='Blue bias', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
+w4.pack()
+w5 = Scale(master, label='Green bias', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
+w5.pack()
+w6 = Scale(master, label='Red bias', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
+w6.pack()
+Button(master, text='Update', command=main).pack()
+
+mainloop()
 
 # combo = np.zeros_like(original)
 # shape = np.shape(original)
@@ -63,8 +91,4 @@ for y in range(np.shape(original)[0]):
 #         if (found == False):
 #             combo[y, x] = grayscale[y, x]
 
-result = combo
-cv2.namedWindow('result', cv2.WINDOW_NORMAL)
-cv2.imshow('result', result)
 
-cv2.waitKey(0)
