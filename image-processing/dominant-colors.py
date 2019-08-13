@@ -4,7 +4,7 @@ import numpy as np
 ''' figures out the average and dominant colors of an image 
 meant to be used to provide a better backlighting experience '''
 
-img = cv2.imread('images\\abstract.jpg')
+img = cv2.imread('images\\lion.jpg')
 print(np.shape(img))
 pixels = np.float32(img.reshape(-1, 3))
 
@@ -14,6 +14,7 @@ flags = cv2.KMEANS_RANDOM_CENTERS
 _, labels, palette = cv2.kmeans(pixels, n_colors, None, criteria, 10, flags)
 _, counts = np.unique(labels, return_counts=True)
 dominant = palette[np.argmax(counts)]
+print('dominant:', dominant)
 
 imgShape = np.shape(img)
 scaleFactor = 1.25
