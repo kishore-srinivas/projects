@@ -31,8 +31,8 @@ def euclideanDistance(pixel, color, weight):
     deltaRed = (pixel[2] - color[2]) * weight[2]
     return math.sqrt(deltaBlue ** 2 + deltaGreen ** 2 + deltaRed ** 2)
 
-def isColor(pixel, color, tolerance, weight=[1, 1, 1]):
-    distance = euclideanDistance(pixel, color, weight)
+def isColor(pixel, color, tolerance, weights=[1, 1, 1]):
+    distance = euclideanDistance(pixel, color, weights)
     return distance <= tolerance
 
 def update(color, weights, tolerance): 
