@@ -38,7 +38,6 @@ displayAdd = Button(frame2, text="+", command=displayAdd)
 displayAdd.pack(side=TOP)
 
 chk_state = BooleanVar() 
-chk_state.set(False) #set check state 
 animationMode = Checkbutton(frame3, text='Animation', font=("Arial Bold", 18), var=chk_state) 
 animationMode.pack()
 
@@ -56,6 +55,7 @@ def submitCalculation():
         vectorLengths = []
     destination = np.array([x, y])
     iterations = 50
+    print('check state:', chk_state.get())
     window.destroy()
     joint_motion.calculate(destination, vectorLengths, chk_state.get(), iterations)
 
