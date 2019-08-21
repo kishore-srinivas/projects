@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 cv2DataPath = 'C:\\Program Files\\Python\\Python37-32\\Lib\\site-packages\\cv2\\data\\'
+import time
 
 # original = cv2.imread('images\\timberlake.jpg')
 # grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
@@ -52,22 +53,26 @@ def detect_iris(img):
     # adjusted = adjusted[int(.2*height):height]
     adjusted[0:int(.3*height), 0:width] = 255
 
-    circles = cv2.HoughCircles(adjusted,cv2.HOUGH_GRADIENT,1,20,param1=30,param2=10,maxRadius=int(height/2))
-    circles = np.uint16(np.around(circles))
-    adjusted = cv2.cvtColor(adjusted, cv2.COLOR_GRAY2BGR)
-    for i in circles[0,:]:
-        # draw the outer circle
-        # cv2.circle(adjusted,(i[0],i[1]),i[2],(0,255,0),2)
-        # draw the center of the circle
-        cv2.circle(adjusted,(i[0],i[1]),1,(0,0,255),3)
-        center = (i[0],i[1])
+    try:
+        circles = cv2.HoughCircles(adjusted,cv2.HOUGH_GRADIENT,1,20,param1=30,param2=10,maxRadius=int(height/2))
+        circles = np.uint16(np.around(circles))
+        adjusted = cv2.cvtColor(adjusted, cv2.COLOR_GRAY2BGR)
+        for i in circles[0,:]:
+            # draw the outer circle
+            # cv2.circle(adjusted,(i[0],i[1]),i[2],(0,255,0),2)
+            # draw the center of the circle
+            cv2.circle(adjusted,(i[0],i[1]),1,(0,0,255),3)
+            center = (i[0],i[1])
+    
+        cv2.namedWindow('adjusted', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('adjusted', 100, 100)
+        cv2.imshow('adjusted', adjusted)
 
-    cv2.namedWindow('adjusted', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('adjusted', 100, 100)
-    cv2.imshow('adjusted', adjusted)
-
-    # return minLoc
-    return center
+        # return minLoc
+        return center
+    except AttributeError:
+        print(time.time(), 'no circles found')
+        return (0, 0)
 
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
