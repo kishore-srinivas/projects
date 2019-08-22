@@ -2,11 +2,11 @@ import cv2
 from enum import Enum
 
 import dominant_colors
-import east_text_detection
+# import east_text_detection
 import gaussian_smoothing
 import gaze_tracking
 import lane_detection
-import math_tests
+# import math_tests
 import selective_coloration
 import text_extraction
 
@@ -15,9 +15,9 @@ class InputType(Enum):
     VIDEO = 1
 
 ''' change these to match the program you wish to call '''
-inputType = InputType.VIDEO
-source = 'images\\test2.mp4'
-PROGRAM = lane_detection
+inputType = InputType.IMAGE
+source = 'images\\abstract.jpg'
+PROGRAM = selective_coloration
 
 try:
     if (inputType == InputType.IMAGE):

@@ -69,12 +69,7 @@ def detect_iris(img):
     else:
         return (0, 0)
 
-cap = cv2.VideoCapture(0)
-if not cap.isOpened():
-    raise IOError("Cannot open webcam")
-
-while(True):
-    _, original = cap.read()
+def main(original):
     original = cv2.flip(original, 1)
     result = np.copy(original)
 
@@ -105,7 +100,3 @@ while(True):
     cv2.namedWindow('result', cv2.WINDOW_NORMAL)
     # cv2.resizeWindow('result', int(np.shape(original)[1]/2), int(np.shape(original)[0]/2))
     cv2.imshow('result', result)
-    if cv2.waitKey(1) == 27: 
-        break  # esc to quit
-cv2.destroyAllWindows()
-# cv2.waitKey(0)

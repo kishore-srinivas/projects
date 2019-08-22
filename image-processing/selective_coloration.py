@@ -12,9 +12,9 @@ define color clusters based on sensitivity
 classify pixel as a specific cluster
 '''
 
-original = cv2.imread('images\\lion.jpg')
-grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
-loading = cv2.imread('images\\loading.jpg')
+# original = cv2.imread('images\\lion.jpg')
+# grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+# loading = cv2.imread('images\\loading.jpg')
 
 '''
 calculates the euclidean distance between a pixel and a color with a specific weight
@@ -35,7 +35,11 @@ def isColor(pixel, color, tolerance, weights=[1, 1, 1]):
     distance = euclideanDistance(pixel, color, weights)
     return distance <= tolerance
 
-def update(color, weights, tolerance): 
+def update(original, color, weights, tolerance): 
+    print(color, weights, tolerance)
+    if (tolerance <= 0):
+        return
+    grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     solid = np.zeros((10, 10, 3), np.uint8)   
     solid[:] = (color[0], color[1], color[2])
     # print(solid)
@@ -43,10 +47,12 @@ def update(color, weights, tolerance):
     cv2.namedWindow('color', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('color', 10, 10)
     cv2.imshow('color', solid)   
+    print('COLOR DISPLAYED')
     # cv2.waitKey(0)
     combo = np.zeros_like(original)
     rangeY = np.shape(original)[0]
     rangeX = np.shape(original)[1]
+    print('RANGE:', rangeX, rangeY)
     for y in range(rangeY):
         for x in range(rangeX):
             if (isColor(original[y, x], color, tolerance, weights)):
@@ -59,31 +65,31 @@ def update(color, weights, tolerance):
     print("DONE")
     # cv2.waitKey(0)
 
-cv2.namedWindow('result', cv2.WINDOW_NORMAL)
-cv2.imshow('result', original)
-# cv2.waitKey(0)
+# def buttonClick(c1, c2, c3, w1, w2, w3, t):
+#     update([c1.get(), c2.get(), c3.get()], [w1.get(), w2.get(), w3.get()], t.get())
 
-def main():
-    update([c1.get(), c2.get(), c3.get()], [w1.get(), w2.get(), w3.get()], t.get())
+def main(img):
+    cv2.namedWindow('result', cv2.WINDOW_NORMAL)
+    cv2.imshow('result', img)
 
-master = Tk()
-c1 = Scale(master, label='Blue', from_=0, to=255, resolution=1, orient=HORIZONTAL)
-c1.pack()
-c2 = Scale(master, label='Green', from_=0, to=255, resolution=1, orient=HORIZONTAL)
-c2.pack()
-c3 = Scale(master, label='Red', from_=0, to=255, resolution=1, orient=HORIZONTAL)
-c3.pack()
-w1 = Scale(master, label='Blue weight', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
-w1.pack()
-w2 = Scale(master, label='Green weight', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
-w2.pack()
-w3 = Scale(master, label='Red weight', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
-w3.pack()
-t = Scale(master, label='Tolerance', from_=0, to=255, resolution=1, orient=HORIZONTAL)
-t.pack()
-Button(master, text='Update', command=main).pack()
+    master = Tk()
+    c1 = Scale(master, label='Blue', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+    c1.pack()
+    c2 = Scale(master, label='Green', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+    c2.pack()
+    c3 = Scale(master, label='Red', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+    c3.pack()
+    w1 = Scale(master, label='Blue weight', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
+    w1.pack()
+    w2 = Scale(master, label='Green weight', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
+    w2.pack()
+    w3 = Scale(master, label='Red weight', from_=0, to=15, resolution=0.25, orient=HORIZONTAL)
+    w3.pack()
+    t = Scale(master, label='Tolerance', from_=0, to=255, resolution=1, orient=HORIZONTAL)
+    t.pack()
+    Button(master, text='Update', command=update(img, [c1.get(), c2.get(), c3.get()], [w1.get(), w2.get(), w3.get()], t.get())).pack()
 
-mainloop()
+    mainloop()
 
 # combo = np.zeros_like(original)
 # shape = np.shape(original)
