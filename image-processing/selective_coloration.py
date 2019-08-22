@@ -36,23 +36,18 @@ def isColor(pixel, color, tolerance, weights=[1, 1, 1]):
     return distance <= tolerance
 
 def update(original, color, weights, tolerance): 
-    print(color, weights, tolerance)
     if (tolerance <= 0):
         return
     grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     solid = np.zeros((10, 10, 3), np.uint8)   
     solid[:] = (color[0], color[1], color[2])
-    # print(solid)
-    print(np.shape(solid))
     cv2.namedWindow('color', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('color', 10, 10)
     cv2.imshow('color', solid)   
     print('COLOR DISPLAYED')
-    # cv2.waitKey(0)
     combo = np.zeros_like(original)
     rangeY = np.shape(original)[0]
     rangeX = np.shape(original)[1]
-    print('RANGE:', rangeX, rangeY)
     for y in range(rangeY):
         for x in range(rangeX):
             if (isColor(original[y, x], color, tolerance, weights)):
@@ -87,7 +82,7 @@ def main(img):
     w3.pack()
     t = Scale(master, label='Tolerance', from_=0, to=255, resolution=1, orient=HORIZONTAL)
     t.pack()
-    Button(master, text='Update', command=update(img, [c1.get(), c2.get(), c3.get()], [w1.get(), w2.get(), w3.get()], t.get())).pack()
+    Button(master, text='Update', command=lambda:update(img, [c1.get(), c2.get(), c3.get()], [w1.get(), w2.get(), w3.get()], t.get())).pack()
 
     mainloop()
 
