@@ -38,10 +38,8 @@ def detect_eyes(img):
             pass
         eyecenter = x + w / 2  # get the eye center
         if eyecenter < width * 0.5:
-            # left_eye = img[y:y + h, x:x + w]
             right_eye = np.array([x, y, w, h])
         else:
-            # right_eye = img[y:y + h, x:x + w]
             left_eye = np.array([x, y, w, h])
     return left_eye, right_eye
 
@@ -62,7 +60,7 @@ def detect_iris(img):
     if (len(keypoints) > 0):
         center = keypoints[0].pt
         center = (int(center[0]), int(center[1]))
-        print(len(keypoints), ':', center, keypoints[0].size)
+        print(np.shape(adjusted), ':', center, keypoints[0].size)
         cv2.circle(adjusted, center, 3, (0,255,0), 1)
         cv2.namedWindow('adjusted', cv2.WINDOW_NORMAL)
         cv2.resizeWindow('adjusted', 100, 100)
@@ -108,6 +106,6 @@ while(True):
     # cv2.resizeWindow('result', int(np.shape(original)[1]/2), int(np.shape(original)[0]/2))
     cv2.imshow('result', result)
     if cv2.waitKey(1) == 27: 
-            break  # esc to quit
+        break  # esc to quit
 cv2.destroyAllWindows()
 # cv2.waitKey(0)

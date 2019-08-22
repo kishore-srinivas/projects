@@ -79,9 +79,7 @@ def regionOfInterest(image):
 # cv2.waitKey(0)
 
 ''' for videos '''
-cap = cv2.VideoCapture('images\\test2.mp4')
-while (cap.isOpened()):
-    _, frame = cap.read()
+def main(frame):
     cannyImage = canny(frame)
     cropped = regionOfInterest(cannyImage)
     lines = cv2.HoughLinesP(cropped, 2, np.pi/180, 100, np.array([]), 40, 5)
@@ -91,7 +89,3 @@ while (cap.isOpened()):
     cv2.namedWindow('result', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('result', 400, 300)
     cv2.imshow('result', combo)
-    if (cv2.waitKey(1) == ord('q')):
-        break
-cap.release()
-cv2.destroyAllWindows()
