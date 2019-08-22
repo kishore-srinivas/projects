@@ -8,6 +8,7 @@ import time
 
 face_cascade = cv2.CascadeClassifier(cv2DataPath + 'haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier(cv2DataPath + 'haarcascade_eye.xml')
+last_keypoint = (0, 0)
 
 def detect_face(img):
     gray_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -45,33 +46,29 @@ def detect_eyes(img):
     return left_eye, right_eye
 
 def detect_iris(img):
-    gray_eyes = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, adjusted = cv2.threshold(gray_eyes, 100, 255, cv2.THRESH_BINARY)
-    adjusted = cv2.GaussianBlur(adjusted, (7, 7), 1)
-    # adjusted = cv2.blur(adjusted, (5, 5))
+    adjusted = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # adjusted = cv2.GaussianBlur(adjusted, (5, 5), 1)
     height, width = np.shape(adjusted)
-    # adjusted = adjusted[int(.2*height):height]
     adjusted[0:int(.3*height), 0:width] = 255
 
-    try:
-        circles = cv2.HoughCircles(adjusted,cv2.HOUGH_GRADIENT,1,20,param1=30,param2=10,maxRadius=int(height/2))
-        circles = np.uint16(np.around(circles))
-        adjusted = cv2.cvtColor(adjusted, cv2.COLOR_GRAY2BGR)
-        for i in circles[0,:]:
-            # draw the outer circle
-            # cv2.circle(adjusted,(i[0],i[1]),i[2],(0,255,0),2)
-            # draw the center of the circle
-            cv2.circle(adjusted,(i[0],i[1]),1,(0,0,255),3)
-            center = (i[0],i[1])
+    is_v2 = cv2.__version__.startswith("2.")
+    if is_v2:
+        detector = cv2.SimpleBlobDetector()
+    else:
+        detector = cv2.SimpleBlobDetector_create()    # Detect blobs.
+    keypoints = detector.detect(adjusted)  
+    adjusted = cv2.cvtColor(adjusted, cv2.COLOR_GRAY2BGR)
     
+    if (len(keypoints) > 0):
+        center = keypoints[0].pt
+        center = (int(center[0]), int(center[1]))
+        print(len(keypoints), ':', center, keypoints[0].size)
+        cv2.circle(adjusted, center, 3, (0,255,0), 1)
         cv2.namedWindow('adjusted', cv2.WINDOW_NORMAL)
         cv2.resizeWindow('adjusted', 100, 100)
-        cv2.imshow('adjusted', adjusted)
-
-        # return minLoc
+        cv2.imshow('adjusted', adjusted)        
         return center
-    except AttributeError:
-        print(time.time(), 'no circles found')
+    else:
         return (0, 0)
 
 cap = cv2.VideoCapture(0)
@@ -105,7 +102,7 @@ while(True):
     cv2.rectangle(result, (x + rx, y + ry), (x + rx+rw, y + ry+rh), (0, 255, 255), 2)
 
     cv2.circle(result, tuple(map(lambda x, y, z: x + y + z, (x, y), (lx, ly), detect_iris(leftEye))), 1, (0, 0, 255), 3)
-    cv2.circle(result, tuple(map(lambda x, y, z: x + y + z, (x, y), (rx, ry), detect_iris(rightEye))), 1, (0, 0, 255), 3)
+    # cv2.circle(result, tuple(map(lambda x, y, z: x + y + z, (x, y), (rx, ry), detect_iris(rightEye))), 1, (0, 0, 255), 3)
 
     cv2.namedWindow('result', cv2.WINDOW_NORMAL)
     # cv2.resizeWindow('result', int(np.shape(original)[1]/2), int(np.shape(original)[0]/2))
