@@ -16,7 +16,7 @@ class InputType(Enum):
 
 ''' change these to match the program you wish to call '''
 inputType = InputType.VIDEO
-source = 'images\\spheres.mp4'
+source = 'images\\rigid_bounce.mp4'
 cameraSource = 0
 PROGRAM = stabilization
 
