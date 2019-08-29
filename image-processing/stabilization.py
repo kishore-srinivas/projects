@@ -23,20 +23,15 @@ def crop(event, x, y, flags, param):
         startCorner = (x, y)
     elif (event == cv2.EVENT_LBUTTONUP):
         stopCorner = (x, y)
-        print(startCorner, stopCorner)
-        # cv2.rectangle(frame, startCorner, stopCorner, (0,0,255), 2)
 
 def __init__(source):
     global roi, minY, maxY, minX, maxX, startCorner, stopCorner, frame, copy
-    print("init")
     vidcap = cv2.VideoCapture(source)
     success, frame = vidcap.read()
     copy = np.copy(frame)
     cv2.imshow('frame', frame)
     cv2.setMouseCallback('frame', crop)
     if cv2.waitKey(0) == ord("c"):
-        print('c pressed')
-        print(startCorner, stopCorner)
         if (startCorner != None) and (stopCorner != None):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             roi = frame[startCorner[1]:stopCorner[1], startCorner[0]:stopCorner[0]]
