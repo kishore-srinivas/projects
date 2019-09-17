@@ -15,10 +15,10 @@ class InputType(Enum):
     CAMERA = 2
 
 ''' change these to match the program you wish to call '''
-inputType = InputType.VIDEO
-source = 'images\\rigid_bounce.mp4'
+inputType = InputType.IMAGE
+source = 'images\\text3.jpg'
 cameraSource = 0
-PROGRAM = stabilization
+PROGRAM = text_extraction
 
 try:
     PROGRAM.__init__(source)

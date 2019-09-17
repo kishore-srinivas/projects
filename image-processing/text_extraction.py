@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 
 def main(img):
-    blur = cv2.GaussianBlur(img, (5, 5), 0)
+    # blur = cv2.GaussianBlur(img, (5, 5), 0)
+    blur = np.copy(img)
     high_thresh, thresh_im = cv2.threshold(cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     lowThresh = 0.5*high_thresh
     gradients = cv2.Canny(blur, lowThresh, high_thresh)

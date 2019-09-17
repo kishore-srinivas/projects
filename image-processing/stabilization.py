@@ -4,10 +4,6 @@ from scipy.ndimage import shift
 import sys
 
 roi = None
-minY = 80
-maxY = 155
-minX = 440
-maxX = 515
 startCorner = None
 stopCorner = None
 frame = None
@@ -25,7 +21,7 @@ def crop(event, x, y, flags, param):
         stopCorner = (x, y)
 
 def __init__(source):
-    global roi, minY, maxY, minX, maxX, startCorner, stopCorner, frame, copy
+    global roi, startCorner, stopCorner, frame, copy
     vidcap = cv2.VideoCapture(source)
     success, frame = vidcap.read()
     copy = np.copy(frame)
