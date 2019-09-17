@@ -41,6 +41,11 @@ while True:
         reflections = reflections * 2
         alpha = 2 * math.pi / reflections
         print('>>>', reflections)
+    elif key == ord("R"):
+        reflections = int(reflections / 2)
+        reflections = reflections if reflections > 1 else 1
+        alpha = 2 * math.pi / reflections
+        print('>>>', reflections)
     elif key == ord("c"):
         print('clearing...')
         canvas = np.copy(clearCanvas)
