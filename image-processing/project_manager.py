@@ -16,9 +16,9 @@ class InputType(Enum):
 
 ''' change these to match the program you wish to call '''
 inputType = InputType.IMAGE
-source = 'images\\text3.jpg'
+source = 'images\\abstract.jpg'
 cameraSource = 0
-PROGRAM = text_extraction
+PROGRAM = selective_coloration
 
 try:
     PROGRAM.__init__(source)

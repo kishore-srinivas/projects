@@ -4,12 +4,13 @@ import numpy as np
 import argparse
 import time
 import cv2
+import pytesseract
  
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", type=str,
 	help="path to input image")
-ap.add_argument("-east", "--east", type=str,
+ap.add_argument("-east", "--east", type=str, default="frozen_east_text_detection.pb",
 	help="path to input EAST text detector")
 ap.add_argument("-c", "--min-confidence", type=float, default=0.5,
 	help="minimum probability required to inspect a region")
@@ -56,6 +57,7 @@ end = time.time()
  
 # show timing information on text prediction
 print("[INFO] text detection took {:.6f} seconds".format(end - start))
+print(pytesseract.image_to_string(image))
 
 # grab the number of rows and columns from the scores volume, then
 # initialize our set of bounding box rectangles and corresponding
