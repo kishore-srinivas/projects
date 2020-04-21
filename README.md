@@ -1,4 +1,4 @@
-# Random Projects
+# Projects
 
 This repository contains small projects that arose from curiosities in random topics. 
 
@@ -28,6 +28,3 @@ Programs related to motion, from visualizing and animating a function to the joi
 
 <ins>tictactoe</ins> (functioning)<br/>
 A human vs computer tictactoe game which the computer will never lose.
-
-<ins>trees</ins> (developing)<br/>
-Experiments with the creation of binary trees and the various algorithms to search through them.
