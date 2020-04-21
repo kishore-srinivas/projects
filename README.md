@@ -1,4 +1,4 @@
-# Random Projects
+# Projects
 
 This repository contains small projects that arose from curiosities in random topics. 
 
