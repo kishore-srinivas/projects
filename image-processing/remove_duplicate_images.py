@@ -9,6 +9,7 @@ import json
 
 REMOVE_DUPLICATES = False # set to True to remove duplicate files from the directory
 
+# hash function to represent an image as a number
 def hash(image, size=50):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     resized = cv2.resize(gray, (size, size+1))
@@ -34,6 +35,8 @@ duplicates = []
 keys = hashTable.keys()
 for k in keys:
     arr = hashTable[k]
+    if (len(arr) < 2): # if fewer than 2 images mapped to this location there will be no duplicate
+        continue
 
     # check if the possible duplicates have the same height
     lengths = {}
@@ -62,7 +65,6 @@ for k in keys:
             sameWidth.append(path)
         except:
             widths[w] = path
-    # print(sameWidth)
 
     # check if specific pixel values match
     if (len(sameWidth) > 0):
@@ -73,6 +75,8 @@ for k in keys:
         pixelValues = {}
         for i in range(len(points)):
             pixelValues[i] = []
+
+        # extract the values for pixels of interest
         for path in sameWidth:
             img = cv2.cvtColor(cv2.imread(path), cv2.COLOR_RGB2GRAY)
             for i in range(len(points)):                
@@ -80,6 +84,8 @@ for k in keys:
                 arr = pixelValues[i]
                 arr.append(val)
                 pixelValues[i] = arr
+
+        # check if corresponding pixels match in the possibly duplicate images
         for k in pixelValues.keys():
             values = {}
             arr = pixelValues[k]
@@ -88,7 +94,6 @@ for k in keys:
                 try:
                     values[v] = values[v] + 1
                     if (sameWidth[i] not in duplicates): duplicates.append(sameWidth[i])
-                    break
                 except:
                     values[v] = 1
                     pass
