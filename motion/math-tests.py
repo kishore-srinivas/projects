@@ -15,3 +15,13 @@ print(v1, v2)
 cosine_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 angle = np.arccos(cosine_angle)
 print(angle)
+
+arr = np.arange(10)
+avg = np.average(arr)
+print(avg)
+
+arr2 = np.arange(50).reshape((5, 10))
+# arr2.reshape((5, 10))
+print(arr2)
+for x in arr2:
+    print(np.average(x))
