@@ -1,3 +1,5 @@
+# based on the algorithm described on this page: http://www.red3d.com/cwr/boids/
+
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -54,7 +56,7 @@ class Bird:
 
 # create birds
 birds = []
-NUM_BIRDS = 5
+NUM_BIRDS = 10
 FIELD_SIDE_LENGTH = 200
 MAX_VEL = 5
 ROI = [10, 2*math.pi/3]
@@ -63,7 +65,6 @@ for i in range(NUM_BIRDS):
     vel = MAX_VEL * np.random.random_sample()
     ori = (2 * math.pi) * np.random.random_sample()
     b = Bird(i, pos, vel, ori, ROI)
-    print(b.getStatus())
     birds.append(b)
 
 # create figure
@@ -74,7 +75,8 @@ ax.grid()
 
 particles = []
 for i in range(len(birds)):
-    particles.append(ax.plot([], [], marker=(4, 0), ms=4)[0])
+    particles.append(ax.plot([], [], marker='$'+str(i)+'$', ms=4)[0])
+    # particles.append(ax.plot([], [], marker=(4, 0), ms=4)[0])
 
 def init():
     for p in particles:
@@ -99,8 +101,27 @@ def animate(i):
                 angle = np.arccos(cosine_angle)
                 if (angle < ROI[1]):
                     birdsInRoi.append(b2)
+        
+        if (len(birdsInRoi) > 0):
+            n = len(birdsInRoi)
+            firstBird = birdsInRoi[0]
+            xTotal = firstBird.getPosition()[0]
+            yTotal = firstBird.getPosition()[1]
+            headingTotal = firstBird.getHeading()
+            for j in range(1, n):
+                cur = birdsInRoi[j]
+                xTotal += cur.getPosition()[0]
+                yTotal += cur.getPosition()[1]
+                headingTotal += cur.getHeading()
+            avgPos = np.array([xTotal / n, yTotal / n])
+            avgHeading = headingTotal / n
+            
+            prevHeading = b.getHeading()
+            b.setHeading(avgHeading)
+            curHeading = b.getHeading()
+            if (abs(prevHeading - curHeading) > 0.01):
+                print(i, ":", prevHeading, "-->", b.getHeading())
 
-                
         b.fly()
         particles[i].set_data(*b.getPosition())
     return particles
