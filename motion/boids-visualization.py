@@ -23,27 +23,28 @@ class Bird:
         self.roi = roi
         self.maxTurnAngle = maxTurnAngle
         self.personalSpace = personalSpace
+        self.thetaToTarget = 0
 
     def fly(self):
+        if (abs(self.thetaToTarget) <= self.maxTurnAngle):
+            self.heading += self.thetaToTarget
+        else:
+            self.heading += self.maxTurnAngle if self.thetaToTarget >= 0 else -1*self.maxTurnAngle
+        self.thetaToTarget -= self.heading
+        self.heading %= (2 * math.pi)
+
         dx = self.speed * math.cos(self.heading)
         dy = self.speed * math.sin(self.heading)
         delta = np.array([dx, dy])
-        self.position += delta
+        self.position += delta        
+        # print(delta, self.thetaToTarget)
 
     '''
-    turns the bird by theta radians if its magnitude is less than maxTurnAngle, else turns by maxTurnAngle
-    @param theta - the angle to turn the bird by, in radians
+    
+    @param theta - the desired heading, in radians
     '''
-    def turn(self, theta):
-        if (abs(theta) <= self.maxTurnAngle):
-            self.heading += theta
-        else:
-            self.heading += self.maxTurnAngle if theta >= 0 else -1*self.maxTurnAngle
-        self.heading %= (2 * math.pi)
-
-    def forceTurn(self, theta):
-        self.heading += theta
-        self.heading %= (2 * math.pi)
+    def setTargetHeading(self, theta):
+        self.thetaToTarget = theta
 
     def getNum(self):
         return self.num
@@ -65,12 +66,12 @@ class Bird:
 
 # create birds
 birds = []
-NUM_BIRDS = 10
+NUM_BIRDS = 25
 FIELD_SIDE_LENGTH = 200
-MAX_VEL = 5
-ROI = [10, 2*math.pi/3]
-MAX_TURN_ANGLE = math.pi/2
-PERSONAL_SPACE = 1
+MAX_VEL = 3
+ROI = [25, 2*math.pi/3]
+MAX_TURN_ANGLE = math.pi/20
+PERSONAL_SPACE = 5
 for i in range(NUM_BIRDS):
     pos = FIELD_SIDE_LENGTH/2 * np.random.random_sample((2,)) - FIELD_SIDE_LENGTH/4
     vel = MAX_VEL #* np.random.random_sample()
@@ -87,12 +88,8 @@ ax.grid()
 particles = []
 for i in range(len(birds)):
     particles.append(ax.plot([], [], marker='$'+str(i)+'$', ms=4)[0])
-    # particles.append(ax.plot([], [], marker=(2, 1, 0), ms=7)[0])
-    # particles.append(ax.arrow([], [], [], []))
 
 def init():
-    # for p in particles:
-    #     p.set_data([], [])
     return particles
 
 def animate(i):
@@ -103,10 +100,11 @@ def animate(i):
     debug = []
     for i in range(len(birds)):
         b = birds[i]
+
         # if bird has flown off the screen, reverse its heading to bring it back
         if (abs(b.getPosition()[0]) > 1.1 * FIELD_SIDE_LENGTH / 2 or
             abs(b.getPosition()[1]) > 1.1 * FIELD_SIDE_LENGTH / 2):
-            b.forceTurn(math.pi)
+            b.setTargetHeading(b.getHeading() + math.pi)
 
         # find birds nearby to influence current bird's actions
         birdsInRoi = []
@@ -160,8 +158,8 @@ def animate(i):
             firstBird2 = birdsInPersonalSpace[0]
             xTotal2 = firstBird2.getPosition()[0]
             yTotal2 = firstBird2.getPosition()[1]
-            for j in range(1, n):
-                cur = birdsInPersonalSpace[j]
+            for j2 in range(1, n2):
+                cur = birdsInPersonalSpace[j2]
                 xTotal2 += cur.getPosition()[0]
                 yTotal2 += cur.getPosition()[1]
             avgPos2 = np.array([xTotal2 / n2, yTotal2 / n2])
@@ -174,24 +172,41 @@ def animate(i):
         else:
             angleToAvoidCollision = 0
 
-        # average the three conditions to find average turn angle
-        toTurn = (angleToAvgLocalHeading + angleToAvgPos + angleToAvoidCollision) / 3
-        b.forceTurn(toTurn)
-        debug.append([round(angleToAvgLocalHeading, 3), round(angleToAvgPos, 3), round(angleToAvoidCollision, 3), round(toTurn, 3)])
+        # average the valid conditions to find average turn angle
+        count = 0
+        count += 0 if (angleToAvgLocalHeading == 0) else 1
+        count += 0 if (angleToAvgPos == 0) else 1
+        count += 0 if (angleToAvoidCollision == 0) else 1
+        headingToAvgLocalHeading = b.getHeading() + angleToAvgLocalHeading
+        headingToAvgPos = b.getHeading() + angleToAvgPos
+        headingToAvoidCollision = b.getHeading() + angleToAvoidCollision
+        k1 = 1
+        k2 = 1
+        k3 = 1
+        m = max(k1, k2, k3)
+        k1 = k1 / m
+        k2 = k2 / m
+        k3 = k3 / m
+        try:
+            targetHeading = (k1*headingToAvgLocalHeading + k2*headingToAvgPos + k3*headingToAvoidCollision) / count
+        except:
+            targetHeading = b.getHeading()
+        b.setTargetHeading(targetHeading)
+        debug.append([round(angleToAvgLocalHeading, 3), round(angleToAvgPos, 3), round(angleToAvoidCollision, 3), round(targetHeading, 3)])
 
         # move birds one timestep forward and update the graphic
         b.fly()
         particles.append(ax.arrow(*b.getPosition(), 2*math.cos(b.getHeading()), 2*math.sin(b.getHeading()), 
             shape='full', head_starts_at_zero=True, width=1, ec="white"))
         particles.append(ax.plot(*b.getPosition(), marker='$'+str(i)+'$', ms=4)[0])
-    for x in range(len(debug)):
-        if (sum(debug[x]) == 0):
-            print(x, end=" ")
-        else:
-            print(debug[x], end=" ")
-    print()
+    # for x in range(len(debug)):
+    #     if (sum(debug[x]) == 0):
+    #         print(x, end=" ")
+    #     else:
+    #         print(debug[x], end=" ")
+    # print()
     return particles
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=1000, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, frames=60, interval=.01, blit=True, init_func=init)
 
 plt.show()
