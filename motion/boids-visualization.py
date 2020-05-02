@@ -37,14 +37,14 @@ class Bird:
         dy = self.speed * math.sin(self.heading)
         delta = np.array([dx, dy])
         self.position += delta        
-        # print(delta, self.thetaToTarget)
+        print(delta, self.thetaToTarget)
 
     '''
     
     @param theta - the desired heading, in radians
     '''
     def setTargetHeading(self, theta):
-        self.thetaToTarget = theta
+        self.thetaToTarget = theta - self.heading
 
     def getNum(self):
         return self.num
@@ -66,7 +66,7 @@ class Bird:
 
 # create birds
 birds = []
-NUM_BIRDS = 25
+NUM_BIRDS = 10
 FIELD_SIDE_LENGTH = 200
 MAX_VEL = 3
 ROI = [25, 2*math.pi/3]
@@ -207,6 +207,6 @@ def animate(i):
     # print()
     return particles
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=.01, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, frames=60, interval=1000, blit=True, init_func=init)
 
 plt.show()
