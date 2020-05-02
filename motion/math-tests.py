@@ -25,3 +25,9 @@ arr2 = np.arange(50).reshape((5, 10))
 print(arr2)
 for x in arr2:
     print(np.average(x))
+print(arr2 * -1)
+
+x = 5
+print(x)
+x += 3
+print(x)
