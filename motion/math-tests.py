@@ -31,3 +31,10 @@ x = 5
 print(x)
 x += 3
 print(x)
+
+v = np.array([2, 2])
+print(v)
+mag = math.sqrt(8)
+print(mag)
+v = v / mag * 1.5
+print(v)
