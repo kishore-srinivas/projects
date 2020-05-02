@@ -28,23 +28,29 @@ class Bird:
     def fly(self):
         if (abs(self.thetaToTarget) <= self.maxTurnAngle):
             self.heading += self.thetaToTarget
+            self.thetaToTarget = 0
         else:
-            self.heading += self.maxTurnAngle if self.thetaToTarget >= 0 else -1*self.maxTurnAngle
-        self.thetaToTarget -= self.heading
+            turn = self.maxTurnAngle if self.thetaToTarget >= 0 else -1*self.maxTurnAngle
+            self.heading += turn
+            self.thetaToTarget -= turn
         self.heading %= (2 * math.pi)
 
         dx = self.speed * math.cos(self.heading)
         dy = self.speed * math.sin(self.heading)
         delta = np.array([dx, dy])
         self.position += delta        
-        print(delta, self.thetaToTarget)
+        if (self.num == 4):
+            print(round(self.heading, 3), round(self.thetaToTarget, 3), round(self.heading + self.thetaToTarget, 3))
 
     '''
-    
     @param theta - the desired heading, in radians
     '''
     def setTargetHeading(self, theta):
-        self.thetaToTarget = theta - self.heading
+        theta %= (2*math.pi)
+        self.heading %= (2*math.pi)
+        self.thetaToTarget = (theta - self.heading) % math.pi
+        if (self.num == 4):
+            print('>>>', round(theta, 3))
 
     def getNum(self):
         return self.num
@@ -105,6 +111,7 @@ def animate(i):
         if (abs(b.getPosition()[0]) > 1.1 * FIELD_SIDE_LENGTH / 2 or
             abs(b.getPosition()[1]) > 1.1 * FIELD_SIDE_LENGTH / 2):
             b.setTargetHeading(b.getHeading() + math.pi)
+            debug.append([b.getNum(), b.getHeading() + math.pi])
 
         # find birds nearby to influence current bird's actions
         birdsInRoi = []
@@ -187,24 +194,21 @@ def animate(i):
         k1 = k1 / m
         k2 = k2 / m
         k3 = k3 / m
-        try:
-            targetHeading = (k1*headingToAvgLocalHeading + k2*headingToAvgPos + k3*headingToAvoidCollision) / count
-        except:
+        if (count == 0):
             targetHeading = b.getHeading()
+        else:
+            targetHeading = (k1*headingToAvgLocalHeading + k2*headingToAvgPos + k3*headingToAvoidCollision) / count
         b.setTargetHeading(targetHeading)
-        debug.append([round(angleToAvgLocalHeading, 3), round(angleToAvgPos, 3), round(angleToAvoidCollision, 3), round(targetHeading, 3)])
+        # debug.append([round(angleToAvgLocalHeading, 3), round(angleToAvgPos, 3), round(angleToAvoidCollision, 3), round(targetHeading, 3)])
 
         # move birds one timestep forward and update the graphic
         b.fly()
         particles.append(ax.arrow(*b.getPosition(), 2*math.cos(b.getHeading()), 2*math.sin(b.getHeading()), 
             shape='full', head_starts_at_zero=True, width=1, ec="white"))
         particles.append(ax.plot(*b.getPosition(), marker='$'+str(i)+'$', ms=4)[0])
-    # for x in range(len(debug)):
-    #     if (sum(debug[x]) == 0):
-    #         print(x, end=" ")
-    #     else:
-    #         print(debug[x], end=" ")
-    # print()
+    for x in debug:
+        print(x, end=" ")
+    print()
     return particles
 
 ani = animation.FuncAnimation(fig, animate, frames=60, interval=1000, blit=True, init_func=init)
