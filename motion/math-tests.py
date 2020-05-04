@@ -46,3 +46,17 @@ heading = heading % (2*math.pi)
 turn = (theta - heading) % math.pi
 print(round(heading, 5), round(turn, 5), round(theta, 5))
 # print((3.92 - math.pi * 2) % (2 * math.pi))
+
+def f(x, y):
+    return x**2 + y**2
+
+x0 = 0
+y0 = 1
+h = 0.05
+
+while (x0 < 0.6):
+    xn = x0 + h
+    yn = round(y0 + h * f(x0, y0), 4)
+    print(round(xn, 2), '\t', yn)
+    x0 = xn
+    y0 = yn

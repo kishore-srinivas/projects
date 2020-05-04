@@ -24,6 +24,7 @@ class Bird:
         self.maxTurnAngle = maxTurnAngle
         self.personalSpace = personalSpace
         self.thetaToTarget = 0
+        print(self.num, self.position)
 
     def fly(self):
         if (abs(self.thetaToTarget) <= self.maxTurnAngle):
@@ -39,9 +40,7 @@ class Bird:
         dy = self.speed * math.sin(self.heading)
         delta = np.array([dx, dy])
         self.position += delta        
-        if (self.num == 4):
-            print(round(self.heading, 3), round(self.thetaToTarget, 3), round(self.heading + self.thetaToTarget, 3))
-
+        
     '''
     @param theta - the desired heading, in radians
     '''
@@ -49,8 +48,7 @@ class Bird:
         theta %= (2*math.pi)
         self.heading %= (2*math.pi)
         self.thetaToTarget = (theta - self.heading) % math.pi
-        if (self.num == 4):
-            print('>>>', round(theta, 3))
+        # print(self.num, round(self.thetaToTarget, 3), round(self.heading, 3))
 
     def getNum(self):
         return self.num
@@ -68,27 +66,27 @@ class Bird:
         return self.personalSpace
 
     def getStatus(self):
-        return "num:" + str(self.num) + "\tpos:" + str(np.around(self.position, 3)) + "\tvel:" + str(round(self.speed, 3)) + "\tori:" + str(round(self.heading, 3))
+        return "num:" + str(self.num) + "\tpos:" + str(np.around(self.position, 3)) + "\tspeed:" + str(round(self.speed, 3)) + "\theading:" + str(round(self.heading, 3))
 
 # create birds
 birds = []
-NUM_BIRDS = 10
+NUM_BIRDS = 25
 FIELD_SIDE_LENGTH = 200
 MAX_VEL = 3
 ROI = [25, 2*math.pi/3]
 MAX_TURN_ANGLE = math.pi/20
 PERSONAL_SPACE = 5
 for i in range(NUM_BIRDS):
-    pos = FIELD_SIDE_LENGTH/2 * np.random.random_sample((2,)) - FIELD_SIDE_LENGTH/4
-    vel = MAX_VEL #* np.random.random_sample()
-    ori = (2 * math.pi) * np.random.random_sample()
+    pos = np.array([-FIELD_SIDE_LENGTH/4, -FIELD_SIDE_LENGTH/4] + ROI[0]*2*np.random.random_sample((2,)))
+    vel = MAX_VEL
+    ori = math.pi/4
     b = Bird(i, pos, vel, ori, ROI, MAX_TURN_ANGLE, PERSONAL_SPACE)
     birds.append(b)
 
 # create figure
 fig = plt.figure()
-fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-ax = fig.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(-1*FIELD_SIDE_LENGTH/2, FIELD_SIDE_LENGTH/2), ylim=(-1*FIELD_SIDE_LENGTH/2, FIELD_SIDE_LENGTH/2))
+fig.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0.5)
+ax = fig.add_subplot(111, aspect='equal', autoscale_on=True, xlim=(-1*FIELD_SIDE_LENGTH/2, FIELD_SIDE_LENGTH/2), ylim=(-1*FIELD_SIDE_LENGTH/2, FIELD_SIDE_LENGTH/2))
 ax.grid()
 
 particles = []
@@ -107,11 +105,18 @@ def animate(i):
     for i in range(len(birds)):
         b = birds[i]
 
-        # if bird has flown off the screen, reverse its heading to bring it back
+        # if bird has flown off the screen, turn it back towards the origin
         if (abs(b.getPosition()[0]) > 1.1 * FIELD_SIDE_LENGTH / 2 or
             abs(b.getPosition()[1]) > 1.1 * FIELD_SIDE_LENGTH / 2):
-            b.setTargetHeading(b.getHeading() + math.pi)
-            debug.append([b.getNum(), b.getHeading() + math.pi])
+            x = b.getPosition()[0]
+            y = b.getPosition()[1]
+            mag = math.sqrt(x**2 + y**2)
+            if (x > 0): # quadrant 1 or 4
+                newHeading = np.arctan(y / x) + math.pi
+            else: # quadrant 2 or 3
+                newHeading = np.arctan(y / x)
+            b.setTargetHeading(newHeading)
+            debug.append([b.getNum(), b.getPosition(), round(newHeading, 3), round(b.getHeading(), 3)])
 
         # find birds nearby to influence current bird's actions
         birdsInRoi = []
@@ -211,6 +216,17 @@ def animate(i):
     print()
     return particles
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=1000, blit=True, init_func=init)
+def display(i):
+    res = []
+    for b in birds:
+        res.append(ax2.text(0, (-b.getNum()-1)*(FIELD_SIDE_LENGTH/(NUM_BIRDS+1)), b.getStatus(), fontsize=6))
+    return res
+
+ani = animation.FuncAnimation(fig, animate, frames=60, interval=10, blit=True, init_func=init)
+
+# # second window to show debug information
+# fig2 = plt.figure()
+# ax2 = fig2.add_subplot(111, aspect='equal', autoscale_on=True, xlim=(0, FIELD_SIDE_LENGTH), ylim=(-1*FIELD_SIDE_LENGTH, 0))
+# ani2 = animation.FuncAnimation(fig2, display, frames=60, interval=10, blit=True, init_func=init)
 
 plt.show()
