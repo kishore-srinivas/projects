@@ -86,10 +86,13 @@ def animate(i):
     for i in range(len(birds)):
         b = birds[i]
 
-        # # if bird has flown off the screen, reverse its heading to bring it back
-        # if (abs(b.getPosition()[0]) > 1.1 * FIELD_SIDE_LENGTH / 2 or
-        #     abs(b.getPosition()[1]) > 1.1 * FIELD_SIDE_LENGTH / 2):
-        #     b.setTargetHeading(b.getHeading() + math.pi)
+        # if bird has flown off the screen, acclerate it around a semicircle to bring it back
+        if (abs(b.getPosition()[0]) > 1.1 * FIELD_SIDE_LENGTH / 2):
+            radius = 2
+            center = b.getPosition() + np.array([0, radius])
+
+        if (abs(b.getPosition()[1]) > 1.1 * FIELD_SIDE_LENGTH / 2):
+            b.setTargetHeading(b.getHeading() + math.pi)
 
         # # find birds nearby to influence current bird's actions
         # birdsInRoi = []
