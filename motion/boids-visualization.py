@@ -117,6 +117,8 @@ def animate(i):
                 newHeading = np.arctan(y / x)
             b.setTargetHeading(newHeading)
             debug.append([b.getNum(), b.getPosition(), round(newHeading, 3), round(b.getHeading(), 3)])
+            b.fly()
+            continue
 
         # find birds nearby to influence current bird's actions
         birdsInRoi = []
