@@ -3,7 +3,9 @@ import math
 import time
 import matplotlib.pyplot as plt
 import tkinter as tk
-ax = plt.axes()
+# ax = plt.axes()
+fig = plt.figure(num="Result")
+ax = fig.add_subplot(111, aspect='equal', autoscale_on=True)
 
 def initVectors(radii):
     vectors = []
@@ -37,7 +39,8 @@ def draw(vectors):
         tip = calcTip(tail, v[0], v[1])
         dx = tip[0] - tail[0]
         dy = tip[1] - tail[1]
-        ax.arrow(tail[0], tail[1], dx, dy)
+        ax.arrow(tail[0], tail[1], dx, dy, shape='full', head_starts_at_zero=True, width=0.005)
+        # ax.arrow(tail[0], tail[1], dx, dy)
         tail = tip
 
 def getMagnitude(vector):
@@ -115,6 +118,7 @@ def calculate(destination, vectorLengths, animationMode, iterations):
     plt.xlim(-1.1*maxLength, 1.1*maxLength)
     plt.ylim(-1.1*maxLength, 1.1*maxLength)
     plt.grid(alpha = 0.25)
+    plt.plot(0, 0, 'ko')
     plt.scatter(destination[0], destination[1])
     draw(result)
 
