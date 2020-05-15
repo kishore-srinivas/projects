@@ -43,7 +43,11 @@ class Line:
         self.x2 = p2[0]
         self.y2 = p2[1]
 
-    def getSlope(self):    
+    def getSlope(self): 
+        if (self.x1 == self.x2):
+            return math.inf
+        if (self.y1 == self.y2):
+            return 0   
         return (self.y2 - self.y1) / (self.x2 - self.x1)
     
     def getHeading(self):
