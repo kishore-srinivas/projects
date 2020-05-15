@@ -13,7 +13,6 @@ class Ball:
         self.elasticity = elasticity
         self.vel = np.zeros_like(pos, float)
         self.acc = np.zeros_like(pos, float)
-        print(self.pos[0])
 
     def move(self, force):
         self.acc = np.divide(force, self.mass)
@@ -37,16 +36,52 @@ class Ball:
     def getRadius(self):
         return self.radius
 
+class Line:
+    def __init__(self, p1, p2):
+        self.x1 = p1[0]
+        self.y1 = p1[1]
+        self.x2 = p2[0]
+        self.y2 = p2[1]
+
+    def getSlope(self):    
+        return (self.y2 - self.y1) / (self.x2 - self.x1)
+    
+    def getHeading(self):
+        return math.atan((self.y2-self.y1)/(self.x2-self.x1))
+
+    def getLength(self):
+        return math.sqrt((self.x2-self.x1)**2 + (self.y2-self.y1)**2)
+
+    # TODO: change to use the distance from the point to the line
+    def isPointOnLine(self, point, tolerance=0.5):
+        if (abs(((point[1] - self.y1) / (point[0] - self.x1)) - self.getSlope()) > tolerance):
+            return False
+        if (point[0] > self.x1 and point[0] > self.x2 or
+            point[0] < self.x1 and point[0] < self.x2):
+            return False
+        if (point[1] > self.y1 and point[1] > self.y2 or
+            point[1] < self.y1 and point[1] < self.y2):
+            return False
+        return True
+
+    def getPoints(self):
+        res = []
+        res.append(self.x1)
+        res.append(self.x2)
+        res.append(self.y1)
+        res.append(self.y2)
+        return res
+
 # create balls
 FIELD_SIDE_LENGTH = 100
-NUM_BALLS = 1
+NUM_BALLS = 3
 MAX_RADIUS = 10
 MAX_MASS = 10
 GRAVITY = -9.81
 T = 0.02 # the length of one time interval, constant for the whole program
 balls = []
 for i in range(NUM_BALLS):
-    xPos = 0.0 #np.random.normal(loc=0, scale=0.3) * 20
+    xPos = np.random.normal(loc=0, scale=0.3) * 20
     yPos = FIELD_SIDE_LENGTH
     pos = np.array([xPos, yPos])
     mass = MAX_MASS ** np.random.rand(1)[0]
@@ -63,12 +98,14 @@ ax.grid()
 
 # stage parameters
 lines = []
-lines.append([-FIELD_SIDE_LENGTH/2, FIELD_SIDE_LENGTH/2, 10, 10])
-lines.append([0, FIELD_SIDE_LENGTH/2, 10, 50])
+lines.append(Line([-FIELD_SIDE_LENGTH/2, 10], [FIELD_SIDE_LENGTH/2, 10]))
+
+# lines.append([0, FIELD_SIDE_LENGTH/2, 10, 50])
 
 # draw the stage from the stage parameters
 for l in lines:
-    ax.plot([l[0], l[1]], [l[2], l[3]], 'k-', lw=1)
+    points = l.getPoints()
+    ax.plot([points[0], points[1]], [points[2], points[3]], 'k-', lw=1)
 
 particles = []
 for i in range(len(balls)):
@@ -87,8 +124,8 @@ def animate(i):
         yPos = b.getPosition()[1]
         acc = np.array([0, GRAVITY])
 
-        if (yPos < 10):
-            impulse = b.getMass() * 2 * b.getVelocity()[1]
+        if (lines[0].isPointOnLine(b.getPosition())):
+            impulse = -1 * b.getMass() * 2 * b.getVelocity()[1]
             force = (impulse / T) * b.getElasticity()
             acc = np.array([0, force / b.getMass()])
 
