@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-f = open("debug.txt", "w")
+# f = open("debug.txt", "w")
 
 class Ball:
     def __init__(self, pos, mass, radius, elasticity):
@@ -18,8 +18,8 @@ class Ball:
         self.acc = np.divide(force, self.mass)
         self.vel += self.acc * T
         self.pos += (self.vel * T) + (0.5 * self.acc * T**2)
-        string = '{:.5f}'.format(self.pos[1]) + '\t' + '{:.5f}'.format(self.vel[1]) + '\t' + '{:.5f}'.format(self.acc[1]) + '\n'
-        f.write(string)
+        # string = '{:.5f}'.format(self.pos[1]) + '\t' + '{:.5f}'.format(self.vel[1]) + '\t' + '{:.5f}'.format(self.acc[1]) + '\n'
+        # f.write(string)
 
     def getPosition(self):
         return self.pos
@@ -56,17 +56,34 @@ class Line:
     def getLength(self):
         return math.sqrt((self.x2-self.x1)**2 + (self.y2-self.y1)**2)
 
+    def getY(self, x):
+        if (self.getSlope() == math.inf):
+            return self.y1
+        return self.getSlope() * (x - self.x1) + self.y1
+
     # TODO: change to use the distance from the point to the line
     def isPointOnLine(self, point, tolerance=0.5):
-        if (abs(((point[1] - self.y1) / (point[0] - self.x1)) - self.getSlope()) > tolerance):
+        p = point
+        if (point[0] < min(self.x1, self.x2) or point[0] > max(self.x1, self.x2)):
             return False
-        if (point[0] > self.x1 and point[0] > self.x2 or
-            point[0] < self.x1 and point[0] < self.x2):
-            return False
-        if (point[1] > self.y1 and point[1] > self.y2 or
-            point[1] < self.y1 and point[1] < self.y2):
-            return False
-        return True
+        p1 = np.array([point[0], self.getY(point[0])])
+        p2 = np.array([self.x2, self.y2])
+        a = p - p1
+        b = p2 - p1
+        # print(p1, p2, a, b)
+        dot_product = np.dot(a, b)
+        # print(dot_product)
+        if (abs(dot_product - 1) < 0.00005):
+            return True
+        cos_theta = dot_product / (np.linalg.norm(a)*np.linalg.norm(b))
+        # print(cos_theta)
+        theta = math.acos(cos_theta)
+        # print(theta)
+        sin_theta = math.sqrt(1 - cos_theta**2)
+        # print(sin_theta)
+        dist = np.linalg.norm(a) * sin_theta
+        # print(dist, dist <= tolerance)
+        return dist <= tolerance
 
     def getPoints(self):
         res = []
@@ -102,7 +119,8 @@ ax.grid()
 
 # stage parameters
 lines = []
-lines.append(Line([-FIELD_SIDE_LENGTH/2, 10], [FIELD_SIDE_LENGTH/2, 10]))
+lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
+lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
 
 # lines.append([0, FIELD_SIDE_LENGTH/2, 10, 50])
 
@@ -128,10 +146,12 @@ def animate(i):
         yPos = b.getPosition()[1]
         acc = np.array([0, GRAVITY])
 
-        if (lines[0].isPointOnLine(b.getPosition())):
-            impulse = -1 * b.getMass() * 2 * b.getVelocity()[1]
-            force = (impulse / T) * b.getElasticity()
-            acc = np.array([0, force / b.getMass()])
+        # print(lines[0].isPointOnLine(b.getPosition()))
+        for l in lines:
+            if (l.isPointOnLine(b.getPosition())):
+                impulse = -1 * b.getMass() * 2 * b.getVelocity()[1]
+                force = (impulse / T) * b.getElasticity()
+                acc = np.array([0, force / b.getMass()])
 
         b.move(acc * b.getMass())
         particles.append(ax.plot(*b.getPosition(), 'bo', ms=b.getRadius()/2)[0])
@@ -140,4 +160,4 @@ def animate(i):
 
 ani = animation.FuncAnimation(fig, animate, frames=60, interval=1, blit=True, init_func=init)
 plt.show()
-f.close()
+# f.close()
