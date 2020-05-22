@@ -6,13 +6,13 @@ import matplotlib.animation as animation
 # f = open("debug.txt", "w")
 
 class Ball:
-    def __init__(self, pos, mass, radius, elasticity):
+    def __init__(self, pos, mass, radius, elasticity, vel=np.array([0., 0.]), acc=np.array([0., 0.])):
         self.pos = pos
         self.mass = mass
         self.radius = radius
         self.elasticity = elasticity
-        self.vel = np.zeros_like(pos, float)
-        self.acc = np.zeros_like(pos, float)
+        self.vel = vel
+        self.acc = acc
 
     def move(self, force):
         self.acc = np.divide(force, self.mass)
@@ -30,6 +30,12 @@ class Ball:
     def getVelocity(self):
         return self.vel
 
+    def getVelocityDirection(self):
+        x = self.vel[0]
+        y = self.vel[1]
+        length = np.linalg.norm(self.vel)
+        return math.acos(x / length) * (1 if y >= 0 else -1)
+        
     def getElasticity(self):
         return self.elasticity
 
@@ -61,7 +67,6 @@ class Line:
             return self.y1
         return self.getSlope() * (x - self.x1) + self.y1
 
-    # TODO: change to use the distance from the point to the line
     def isPointOnLine(self, point, tolerance=0.5):
         p = point
         if (point[0] < min(self.x1, self.x2) or point[0] > max(self.x1, self.x2)):
@@ -95,20 +100,23 @@ class Line:
 
 # create balls
 FIELD_SIDE_LENGTH = 100
-NUM_BALLS = 3
+NUM_BALLS = 1
 MAX_RADIUS = 10
 MAX_MASS = 10
 GRAVITY = -9.81
 T = 0.02 # the length of one time interval, constant for the whole program
 balls = []
 for i in range(NUM_BALLS):
-    xPos = np.random.normal(loc=0, scale=0.3) * 20
+    xPos = np.random.normal(loc=0, scale=0.3) * 30
     yPos = FIELD_SIDE_LENGTH
     pos = np.array([xPos, yPos])
     mass = MAX_MASS ** np.random.rand(1)[0]
     radius = MAX_RADIUS ** np.random.rand(1)[0]
     elasticity = np.random.normal(loc=0.7, scale=0.1)
-    b = Ball(pos, mass, radius, elasticity)
+    xVel = 0.0#np.random.normal(loc=0, scale=0.3) * 3
+    yVel = np.random.normal(loc=0, scale=0.3) * 3
+    vel = np.array([xVel, yVel])
+    b = Ball(pos, mass, radius, elasticity, vel)
     balls.append(b)
 
 # create figure
@@ -121,6 +129,10 @@ ax.grid()
 lines = []
 lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
 lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
+# lines.append(Line([-FIELD_SIDE_LENGTH/2, 70], [FIELD_SIDE_LENGTH/8, 50]))
+# lines.append(Line([-FIELD_SIDE_LENGTH/8, 10], [FIELD_SIDE_LENGTH/2, 30]))
+# lines.append(Line([-30, 70], [10, 30]))
+# lines.append(Line([40, 50], [0, 10]))
 
 # lines.append([0, FIELD_SIDE_LENGTH/2, 10, 50])
 
@@ -146,15 +158,25 @@ def animate(i):
         yPos = b.getPosition()[1]
         acc = np.array([0, GRAVITY])
 
-        # print(lines[0].isPointOnLine(b.getPosition()))
         for l in lines:
             if (l.isPointOnLine(b.getPosition())):
-                impulse = -1 * b.getMass() * 2 * b.getVelocity()[1]
-                force = (impulse / T) * b.getElasticity()
-                acc = np.array([0, force / b.getMass()])
+                #TODO: implement angleOfIncidence
+                angleOfIncidence = (b.getVelocityDirection() - l.getHeading()) % (math.pi/2)
+                print(b.getVelocityDirection(), l.getHeading(), angleOfIncidence)
+                # angleOfIncidence = 0
+
+                impulseX = -1 * b.getMass() * 2 * b.getVelocity()[0] * math.sin(angleOfIncidence)
+                forceX = (impulseX / T) * b.getElasticity()
+                impulseY = -1 * b.getMass() * 2 * b.getVelocity()[1] * math.cos(angleOfIncidence)
+                forceY = (impulseY / T) * b.getElasticity()
+                acc = np.array([forceX, forceY] / b.getMass())
+                if (abs(acc[1] + GRAVITY) < 0.00001):
+                    acc[1] = 0
 
         b.move(acc * b.getMass())
         particles.append(ax.plot(*b.getPosition(), 'bo', ms=b.getRadius()/2)[0])
+        particles.append(ax.arrow(*b.getPosition(), 2*math.cos(b.getVelocityDirection()), 2*math.sin(b.getVelocityDirection()), 
+            shape='full', head_starts_at_zero=True, width=1, ec="white"))
 
     return particles
 
