@@ -101,8 +101,8 @@ class Line:
 # create balls
 FIELD_SIDE_LENGTH = 100
 NUM_BALLS = 1
-MAX_RADIUS = 10
-MAX_MASS = 10
+MAX_RADIUS = np.float64(10.0)
+MAX_MASS = np.float64(10.0)
 GRAVITY = -9.81
 T = 0.02 # the length of one time interval, constant for the whole program
 balls = []
@@ -110,9 +110,9 @@ for i in range(NUM_BALLS):
     xPos = np.random.normal(loc=0, scale=0.3) * 30
     yPos = FIELD_SIDE_LENGTH
     pos = np.array([xPos, yPos])
-    mass = MAX_MASS ** np.random.rand(1)[0]
-    radius = MAX_RADIUS ** np.random.rand(1)[0]
-    elasticity = np.random.normal(loc=0.7, scale=0.1)
+    mass = MAX_MASS #** np.random.rand(1)[0]
+    radius = MAX_RADIUS #** np.random.rand(1)[0]
+    elasticity = 0.7#np.random.normal(loc=0.7, scale=0.1)
     xVel = 0.0#np.random.normal(loc=0, scale=0.3) * 3
     yVel = np.random.normal(loc=0, scale=0.3) * 3
     vel = np.array([xVel, yVel])
@@ -127,12 +127,18 @@ ax.grid()
 
 # stage parameters
 lines = []
-lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
-lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
+# horizontal lines
+# lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
+# lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
+# angled lines
 # lines.append(Line([-FIELD_SIDE_LENGTH/2, 70], [FIELD_SIDE_LENGTH/8, 50]))
 # lines.append(Line([-FIELD_SIDE_LENGTH/8, 10], [FIELD_SIDE_LENGTH/2, 30]))
+# 45deg lines
 # lines.append(Line([-30, 70], [10, 30]))
 # lines.append(Line([40, 50], [0, 10]))
+# 30deg lines
+lines.append(Line([10-20*math.sqrt(3), 70], [10, 50]))
+lines.append(Line([40, 50], [0, 10]))
 
 # lines.append([0, FIELD_SIDE_LENGTH/2, 10, 50])
 
@@ -161,17 +167,28 @@ def animate(i):
         for l in lines:
             if (l.isPointOnLine(b.getPosition())):
                 #TODO: implement angleOfIncidence
-                angleOfIncidence = (b.getVelocityDirection() - l.getHeading()) % (math.pi/2)
-                print(b.getVelocityDirection(), l.getHeading(), angleOfIncidence)
-                # angleOfIncidence = 0
+                angleOfNormal = l.getHeading() + math.pi/2
+                # print(b.getVelocityDirection(), l.getHeading(), angleOfIncidence)
+                # angleOfNormal = math.pi/2
 
-                impulseX = -1 * b.getMass() * 2 * b.getVelocity()[0] * math.sin(angleOfIncidence)
+                vel = np.linalg.norm(b.getVelocity())
+                print(b.getVelocity(), vel)
+                # impulse = -1 * b.getMass() * 2 * b.getVelocity() * np.array([math.sin(angleOfIncidence), math.cos(angleOfIncidence)])
+                # force = (impulse / T) * b.getElasticity()
+                # acc = force / b.getMass()
+                impulseX = b.getMass() * 2 * vel * math.cos(angleOfNormal) #* (-1 if b.getVelocity()[0] > 0 else 1)
                 forceX = (impulseX / T) * b.getElasticity()
-                impulseY = -1 * b.getMass() * 2 * b.getVelocity()[1] * math.cos(angleOfIncidence)
+                impulseY = b.getMass() * 2 * vel * math.sin(angleOfNormal) #* (-1 if b.getVelocity()[1] > 0 else 1)
                 forceY = (impulseY / T) * b.getElasticity()
+                impulse = np.array([impulseX, impulseY])
+                # print(math.sin(angleOfIncidence), impulseX, math.cos(angleOfIncidence), impulseY)
                 acc = np.array([forceX, forceY] / b.getMass())
                 if (abs(acc[1] + GRAVITY) < 0.00001):
                     acc[1] = 0
+                print(angleOfNormal, impulse, acc)
+
+                particles.append(ax.arrow(*b.getPosition(), *acc, 
+                    shape='full', head_starts_at_zero=True, width=1, ec="white", fc="red"))
 
         b.move(acc * b.getMass())
         particles.append(ax.plot(*b.getPosition(), 'bo', ms=b.getRadius()/2)[0])
@@ -180,6 +197,6 @@ def animate(i):
 
     return particles
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=1, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, frames=60, interval=10, blit=True, init_func=init)
 plt.show()
 # f.close()
