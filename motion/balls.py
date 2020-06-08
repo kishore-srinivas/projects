@@ -100,7 +100,7 @@ class Line:
 
 # create balls
 FIELD_SIDE_LENGTH = 100
-NUM_BALLS = 1
+NUM_BALLS = 3
 MAX_RADIUS = np.float64(10.0)
 MAX_MASS = np.float64(10.0)
 GRAVITY = -9.81
