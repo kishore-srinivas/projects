@@ -35,17 +35,16 @@ public class PhotonPolarizationMeasurement
     public static void main(String[] args)
     {
         //Experiment 1
-        PhotonPolarizationMeasurement photon = new PhotonPolarizationMeasurement(90);
-        for(int i=0;i<5;i++)System.out.println(photon.measurePolarization(45));
+        // PhotonPolarizationMeasurement photon = new PhotonPolarizationMeasurement(90);
+        // for(int i=0;i<5;i++)System.out.println(photon.measurePolarization(45));
         
         //Experiment 2
-        /*
         int trueCount = 0; 
         int falseCount = 0;
         for(int i=0;i<1000;i++)
         {
-            PhotonPolarizationMeasurement photon = new PhotonPolarizationMeasurement(90);
-            if(photon.measurePolarization(45))
+            PhotonPolarizationMeasurement photon = new PhotonPolarizationMeasurement(0);
+            if(photon.measurePolarization(20))
             {
                 trueCount++;
             }
@@ -59,6 +58,5 @@ public class PhotonPolarizationMeasurement
         double variance = ((1.0-mean)*(1.0-mean)*trueCount + mean*mean*falseCount)/(trueCount+falseCount);
         double SD = Math.sqrt(variance);
         System.out.println("MEAN: "+mean+"\r\nStandard Deviation: "+SD);
-        */
     }
 }
