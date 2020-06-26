@@ -8,23 +8,26 @@ Some are ready to be used, and others are in development. I work on the core fea
 A project will therefore be in one of these three states:
 1. Developing - the core functionality has not been completed yet
 2. Functioning - the core functionality is complete, but the program does not have a usable UI
-3. Usable - program works and has a usable UI
+3. Complete - program works and has a usable UI
 
 Stay tuned for new projects and cool updates to existing ones, the best is yet to come!
 
 ### Project descriptions
 
 <ins>full-stack</ins> (developing)<br/>
-Experiments with developing a full stack application, in an attempt to familiarize myself with different tools, such as Django, NodeJS, and ReactJS
+Experiments with developing a full stack application, in an attempt to familiarize myself with different tools, such as Django, NodeJS, and ReactJS.
 
 <ins>gaze-tracking</ins> (developing)<br/>
 An interface that uses gaze tracking and voice commands to allow the user to navigate a computer screen hands-free. 
 
-<ins>image-processing</ins> (usable)<br/>
+<ins>image-processing</ins> (complete)<br/>
 Experiments with image processing using opencv. Most of the programs are implementations of cool features such as selective coloration, lane detection, and text recognition.
 
-<ins>motion</ins> (usable)<br/>
+<ins>motion</ins> (complete)<br/>
 Programs related to motion, from visualizing and animating a function to the joint-motion project which simulates a different take on pathfinding using machine learning.
+
+<ins>quantum-computing</ins> (complete)<br/>
+Experiments in quantum computing to familiarize myself with libraries and implement basic single-purpose programs, mostly based on courses on Udemy and articles I read.
 
 <ins>tictactoe</ins> (functioning)<br/>
 A human vs computer tictactoe game which the computer will never lose.
