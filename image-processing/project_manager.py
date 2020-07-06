@@ -16,7 +16,7 @@ class InputType(Enum):
 
 ''' change these to match the program you wish to call '''
 inputType = InputType.IMAGE
-source = 'images\\abstract.jpg'
+source = 'C://Users//kisho//Documents//git//projects//image-processing//images//painting.jpg'
 cameraSource = 0
 PROGRAM = selective_coloration
 

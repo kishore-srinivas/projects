@@ -37,3 +37,6 @@ def main(img):
     cv2.imshow('result', color)
 
     cv2.waitKey(0)
+
+# img = cv2.imread('C://Users//kisho//Documents//git//projects//image-processing//images//painting.jpg')
+# main(img)

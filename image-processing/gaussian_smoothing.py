@@ -2,11 +2,11 @@ import cv2
 import numpy as np
 
 def main(img):
-    print(img[100, 100])
-    print(img.item(100, 100))
+    # print(img[100, 100])
+    # print(img.item(100, 100))
 
-    print(img.shape)
-    print(img.dtype)
+    # print(img.shape)
+    # print(img.dtype)
 
     region = img[200:300, 400:500]
     img[0:100, 0:100] = region
