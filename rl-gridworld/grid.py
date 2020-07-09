@@ -27,6 +27,7 @@ class Grid:
         self.trap = [1, width-1]
         self.grid[self.trap[0]][self.trap[1]] = 'T'
         self.deterministic = deterministic
+        self.numWalls = numWalls
         # for i in range(numWalls):
         #     wallX = np.random.randint(width, size=1)[0]
         #     wallY = np.random.randint(height, size=1)[0]
@@ -34,6 +35,9 @@ class Grid:
         #         self.setSquare(wallX, wallY, 'X')
         #     else:
         #         i -= 1
+
+    def reset(self):
+        self.__init__(self.width, self.height, deterministic=self.deterministic, numWalls=self.numWalls)
 
     def giveReward(self, pos):
         if (pos[0] == self.goal[1] and pos[1] == self.goal[0]):

@@ -54,11 +54,16 @@ class Agent:
                 for m in reversed(self.moves):
                     reward = self.stateValues[m] + self.learningRate * (reward - self.stateValues[m])
                     self.stateValues[m] = round(reward, 3)
-                self.moveTo(self.initialPosition)
-                self.moves = []
+                self.reset()
             else:
                 action = self.chooseAction()
                 nextPos = self.grid.getNextLegalPosition(self.getPosition(), action)
                 print(i, 'moving from {} to {}'.format(self.getPosition(), nextPos))
                 self.moves.append(nextPos)
                 self.moveTo(nextPos)
+
+    def reset(self):
+        self.grid.reset()
+        self.position = self.initialPosition
+        self.states = []
+        self.grid.setSquare(*self.position, 'A')
