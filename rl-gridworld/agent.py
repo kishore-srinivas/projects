@@ -3,21 +3,21 @@ import numpy as np
 
 class Agent:
     def __init__(self, grid, explorationRate, learningRate=0.1):
-        posX = np.random.randint(grid.width, size=1)[0]
-        posY = np.random.randint(grid.height, size=1)[0]
-        while not grid.isEmpty(posX, posY):
-            posX = np.random.randint(grid.width, size=1)[0]
-            posY = np.random.randint(grid.height, size=1)[0]
-        self.position = (posX, posY)
-        self.initialPosition = (posX, posY)        
-        grid.setSquare(posX, posY, 'A')
+        rowPos = np.random.randint(grid.getNumRows(), size=1)[0]
+        colPos = np.random.randint(grid.getNumCols(), size=1)[0]
+        while not grid.isEmpty(rowPos, colPos):
+            rowPos = np.random.randint(grid.getNumRows(), size=1)[0]
+            colPos = np.random.randint(grid.getNumCols(), size=1)[0]
+        self.position = (rowPos, colPos)
+        self.initialPosition = (rowPos, colPos)        
+        grid.setSquare((rowPos, colPos), 'A')
         self.grid = grid
         self.moves = []
         self.explorationRate = explorationRate
         self.learningRate = learningRate
         self.stateValues = {}
-        for i in range(grid.width):
-            for j in range(grid.height):
+        for i in range(grid.getNumRows()):
+            for j in range(grid.getNumCols()):
                 self.stateValues[(i, j)] = self.grid.giveReward((i, j))
 
     def getPosition(self):

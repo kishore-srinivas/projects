@@ -9,40 +9,33 @@ class Action(Enum):
     LEFT = 4
 
 class Grid: 
-    def __init__(self, width, height, deterministic=False, numWalls=1):
-        if (numWalls >= width * height - 1):
+    def __init__(self, rows, cols, deterministic=False, numWalls=1):
+        if (numWalls >= rows * cols - 1):
             numWalls = 1
         self.grid = []
-        for i in range(height):
+        for i in range(rows):
             row = []
-            for j in range(width):
+            for j in range(cols):
                 row.append(' ')
             self.grid.append(row)
-        self.height = height
-        self.width = width
-        self.goal = [0, width-1]
-        self.grid[self.goal[0]][self.goal[1]] = 'G'
-        self.wall = [2, 1]
-        self.grid[self.wall[0]][self.wall[1]] = 'X'
-        self.trap = [1, width-1]
-        self.grid[self.trap[0]][self.trap[1]] = 'T'
+        self.numRows = rows
+        self.numCols = cols
+        self.goal = (0, cols-1)
+        self.setSquare(self.goal, 'G')
+        self.wall = (2, 1)
+        self.setSquare(self.wall, 'X')
+        self.trap = (1, cols-1)
+        self.setSquare(self.trap, 'T')
         self.deterministic = deterministic
         self.numWalls = numWalls
-        # for i in range(numWalls):
-        #     wallX = np.random.randint(width, size=1)[0]
-        #     wallY = np.random.randint(height, size=1)[0]
-        #     if (self.isEmpty(wallX, wallY)):
-        #         self.setSquare(wallX, wallY, 'X')
-        #     else:
-        #         i -= 1
 
     def reset(self):
-        self.__init__(self.width, self.height, deterministic=self.deterministic, numWalls=self.numWalls)
+        self.__init__(self.numRows, self.numCols, deterministic=self.deterministic, numWalls=self.numWalls)
 
     def giveReward(self, pos):
-        if (pos[0] == self.goal[1] and pos[1] == self.goal[0]):
+        if (pos == self.goal):
             return 1
-        if (self.getSquare(*pos) == 'X' or self.getSquare(*pos) == 'T'):
+        if (self.getSquare(pos) == 'X' or self.getSquare(pos) == 'T'):
             return -1
         return 0
 
@@ -72,11 +65,11 @@ class Grid:
             self.deterministic = True
             nextPos = self.getNextLegalPosition(pos, a)
 
-        if (nextPos[0] < 0 or nextPos[0] >= self.width or
-            nextPos[1] < 0 or nextPos[1] >= self.height):
+        if (nextPos[0] < 0 or nextPos[0] >= self.numRows or
+            nextPos[1] < 0 or nextPos[1] >= self.numCols):
                 return pos
         try:
-            if (self.isEmpty(*nextPos) or self.getSquare(*nextPos) == 'G'):
+            if (self.isEmpty(nextPos) or self.isGoal(nextPos)):
                 return nextPos
             else:
                 return pos
@@ -85,21 +78,24 @@ class Grid:
 
     
     def draw(self):
-        for i in range(self.height):
+        for i in range(self.numRows):
             print(self.grid[i])
         print()
 
-    def getSquare(self, x, y):
-        return self.grid[y][x]
+    def getSquare(self, pos):
+        return self.grid[pos[0]][pos[1]]
 
-    def setSquare(self, x, y, value):
-        self.grid[y][x] = value
+    def setSquare(self, pos, value):
+        self.grid[pos[0]][pos[1]] = value
 
-    def getWidth(self):
-        return self.width
+    def getNumCols(self):
+        return self.numCols
 
-    def getHeight(self):
-        return self.height
+    def getNumRows(self):
+        return self.numRows
 
-    def isEmpty(self, x, y):
-        return self.getSquare(x, y) == ' '
+    def isEmpty(self, pos):
+        return self.getSquare(pos) == ' '
+
+    def isGoal(self, pos):
+        return self.getSquare(pos) == 'G'
