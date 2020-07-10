@@ -3,31 +3,31 @@ import numpy as np
 
 class QAgent:
     def __init__(self, grid, explorationRate, learningRate=0.2, gamma=0.9):
-        posX = np.random.randint(grid.width, size=1)[0]
-        posY = np.random.randint(grid.height, size=1)[0]
-        while not grid.isEmpty(posX, posY):
-            posX = np.random.randint(grid.width, size=1)[0]
-            posY = np.random.randint(grid.height, size=1)[0]
-        self.position = (posX, posY)
-        self.initialPosition = (posX, posY)        
-        grid.setSquare(posX, posY, 'A')
+        rowPos = np.random.randint(grid.getNumRows(), size=1)[0]
+        colPos = np.random.randint(grid.getNumCols(), size=1)[0]
+        while not grid.isEmpty((rowPos, colPos)):
+            rowPos = np.random.randint(grid.getNumRows(), size=1)[0]
+            colPos = np.random.randint(grid.getNumCols(), size=1)[0]
+        self.position = (rowPos, colPos)
+        self.initialPosition = (rowPos, colPos)        
+        grid.setSquare(self.position, 'A')
         self.grid = grid
         self.states = []
         self.explorationRate = explorationRate
         self.learningRate = learningRate
         self.gamma = gamma
         self.qValues = {}
-        for i in range(grid.width):
-            for j in range(grid.height):
+        for i in range(grid.getNumRows()):
+            for j in range(grid.getNumCols()):
                 self.qValues[(i, j)] = {}
                 for a in Action:
                     self.qValues[(i, j)][a] = 0
 
     def takeAction(self, action):
         nextPos = self.grid.getNextLegalPosition(self.getPosition(), action)
-        self.grid.setSquare(*self.position, ' ')
-        self.position = nextPos
-        self.grid.setSquare(*self.position, 'A')
+        self.grid.setSquare(self.getPosition(), ' ')
+        self.setPosition(nextPos)
+        self.grid.setSquare(self.getPosition(), 'A')
         # self.grid.draw()
 
     def chooseAction(self, exp):
@@ -45,27 +45,39 @@ class QAgent:
                     action = a
             return action
 
-    def play(self, rounds=200):
+    def play(self, rounds=50):
+        lastPos = None
+        lastAction = None
+        curPos = self.getPosition()
         for i in range(rounds):
             reward = self.grid.giveReward(self.getPosition())
             if (reward == 1):
                 print(i, "GOAL!")
                 for a in Action:
-                    self.qValues[self.getPosition()][a] = reward
+                    self.qValues[self.getPosition()][a] = -reward
                 for s in reversed(self.states):
                     currentQValue = self.qValues[s[0]][s[1]]
                     reward = currentQValue + self.learningRate * (self.gamma * reward - currentQValue)
                     self.qValues[s[0]][s[1]] = round(reward, 3)
                 self.reset()
-                return
+                # return
             else:
                 action = self.chooseAction(exp=self.explorationRate)
+                if (curPos == lastPos):
+                    while (action == lastAction):
+                        action = self.chooseAction(exp=self.explorationRate)
                 self.states.append([self.getPosition(), action])
-                print(i, 'current pos: {} action {}'.format(self.getPosition(), action))
+                print('{:2d} current pos: {} action {}'.format(i, self.getPosition(), action))
+                lastPos = curPos
                 self.takeAction(action)
+                curPos = self.getPosition()
+                lastAction = action
     
     def getPosition(self):
         return self.position
+
+    def setPosition(self, pos):
+        self.position = pos
 
     def getQValues(self):
         return self.qValues
@@ -74,4 +86,4 @@ class QAgent:
         self.grid.reset()
         self.position = self.initialPosition
         self.states = []
-        self.grid.setSquare(*self.position, 'A')
+        self.grid.setSquare(self.position, 'A')
