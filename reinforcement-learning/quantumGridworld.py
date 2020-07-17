@@ -53,14 +53,14 @@ class GridworldEnv:
         return self.states, len(self.actions), self.final_state
         
     def step(self, action):
-        # action = self.actions[action]
-        if action == '00':
+        action = self.actions[action]
+        if action == 'UP':
             self.state[1] -= 1
-        elif action == '01':
+        elif action == 'LEFT':
             self.state[0] -= 1
-        elif action == '10':
+        elif action == 'DOWN':
             self.state[1] += 1
-        elif action == '11':
+        elif action == 'RIGHT':
             self.state[0] += 1
 
         if self.state[0] < 0:
