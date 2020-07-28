@@ -43,11 +43,12 @@ class Ball:
         return self.radius
 
 class Line:
-    def __init__(self, p1, p2):
+    def __init__(self, p1, p2, kFriction=0.5):
         self.x1 = p1[0]
         self.y1 = p1[1]
         self.x2 = p2[0]
         self.y2 = p2[1]
+        self.kFriction = kFriction
 
     def getSlope(self): 
         if (self.x1 == self.x2):
@@ -98,16 +99,19 @@ class Line:
         res.append(self.y2)
         return res
 
+    def getKFriction(self):
+        return self.kFriction
+
 # create balls
 FIELD_SIDE_LENGTH = 100
-NUM_BALLS = 3
+NUM_BALLS = 1
 MAX_RADIUS = np.float64(10.0)
 MAX_MASS = np.float64(10.0)
-GRAVITY = -9.81
+GRAVITY = 9.81
 T = 0.02 # the length of one time interval, constant for the whole program
 balls = []
 for i in range(NUM_BALLS):
-    xPos = np.random.normal(loc=0, scale=0.3) * 50
+    xPos = -30.0 #np.random.normal(loc=0, scale=0.3) * 50
     yPos = FIELD_SIDE_LENGTH
     pos = np.array([xPos, yPos])
     mass = MAX_MASS #** np.random.rand(1)[0]
@@ -161,40 +165,57 @@ def animate(i):
 
     for i in range(len(balls)):
         b = balls[i]
-        acc = np.array([0, GRAVITY])
+        acc = np.array([0, -GRAVITY])
         force = acc * b.getMass()
-
         vel = np.linalg.norm(b.getVelocity())
-        # print(b.getVelocity(), vel)
 
         for l in lines:
             if (l.isPointOnLine(b.getPosition())):
                 angleOfNormal = l.getHeading() + math.pi/2
-                # force -= b.getMass() * GRAVITY * np.array([math.cos(angleOfNormal), math.sin(angleOfNormal)])                                
-
-                vfx = vel * math.cos(angleOfNormal)
-                vfy = vel * math.sin(angleOfNormal)
-                impulse = b.getMass() * (np.array([vfx, vfy]) - b.getVelocity())
-
-                if (np.linalg.norm(impulse) / b.getMass() > abs(GRAVITY)): # if impact is strong enough to be a bounce
+                lineAngle = l.getHeading()
+                velAngle = b.getVelocityDirection()
+                theta = abs((lineAngle - velAngle) % math.pi)
+                # sinTheta = np.cross(velAngle, lineAngle) / (np.linalg.norm(velAngle) * np.linalg.norm(lineAngle))
+                
+                threshold = math.pi/6
+                if (vel > 1 and theta > threshold):
+                    vfx = vel * math.cos(angleOfNormal)
+                    vfy = vel * math.sin(angleOfNormal)
+                    impulse = b.getMass() * (np.array([vfx, vfy]) - b.getVelocity())
                     force = (impulse / T) * b.getElasticity()
-                else: # else ball should roll not bounce
-                    gravityAngle = l.getHeading()
-                    if gravityAngle > math.pi/2 and gravityAngle < math.pi:
+                else:
+                    gravityAngle = lineAngle
+                    if (gravityAngle > 0):
                         gravityAngle += math.pi
                     force = b.getMass() * GRAVITY * np.array([math.cos(gravityAngle), math.sin(gravityAngle)])
-                    # force = b.getMass() * GRAVITY * np.array([math.sin(angleOfNormal), math.cos(angleOfNormal)])
+                    force *= l.getKFriction()
+
+                if (abs(GRAVITY - force[1]) < 0.001):
+                    force[1] = 0.0
+
+
+                # angleOfNormal = l.getHeading() + math.pi/2
+
+                # vfx = vel * math.cos(angleOfNormal)
+                # vfy = vel * math.sin(angleOfNormal)
+                # impulse = b.getMass() * (np.array([vfx, vfy]) - b.getVelocity())
+
+                # if (np.linalg.norm(impulse) / b.getMass() > abs(GRAVITY)): # if impact is strong enough to be a bounce
+                #     force = (impulse / T) * b.getElasticity()
+                # else: # else ball should roll not bounce
+                #     gravityAngle = l.getHeading()
+                #     if gravityAngle > math.pi/2 and gravityAngle < math.pi:
+                #         gravityAngle += math.pi
+                #     force = b.getMass() * GRAVITY * np.array([math.cos(gravityAngle), math.sin(gravityAngle)])
                     
-                # if (abs(force[1] + GRAVITY) < 0.00001):
-                #     force[1] = 0
 
                 particles.append(ax.arrow(*b.getPosition(), *force, 
                     shape='full', head_starts_at_zero=True, width=1, ec="white", fc="red"))
 
         b.move(force)
         particles.append(ax.plot(*b.getPosition(), 'bo', ms=b.getRadius()/2)[0])
-        # particles.append(ax.arrow(*b.getPosition(), vel*math.cos(b.getVelocityDirection()), vel*math.sin(b.getVelocityDirection()), 
-        #     shape='full', head_starts_at_zero=True, width=1, ec="white"))
+        particles.append(ax.arrow(*b.getPosition(), vel*math.cos(b.getVelocityDirection()), vel*math.sin(b.getVelocityDirection()), 
+            shape='full', head_starts_at_zero=True, width=1, ec="white"))
 
     return particles
 
