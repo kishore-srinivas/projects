@@ -107,7 +107,7 @@ GRAVITY = -9.81
 T = 0.02 # the length of one time interval, constant for the whole program
 balls = []
 for i in range(NUM_BALLS):
-    xPos = np.random.normal(loc=0, scale=0.3) * 30
+    xPos = np.random.normal(loc=0, scale=0.3) * 50
     yPos = FIELD_SIDE_LENGTH
     pos = np.array([xPos, yPos])
     mass = MAX_MASS #** np.random.rand(1)[0]
@@ -161,7 +161,6 @@ def animate(i):
 
     for i in range(len(balls)):
         b = balls[i]
-        yPos = b.getPosition()[1]
         acc = np.array([0, GRAVITY])
         force = acc * b.getMass()
 
@@ -171,19 +170,23 @@ def animate(i):
         for l in lines:
             if (l.isPointOnLine(b.getPosition())):
                 angleOfNormal = l.getHeading() + math.pi/2
-                                
+                # force -= b.getMass() * GRAVITY * np.array([math.cos(angleOfNormal), math.sin(angleOfNormal)])                                
+
                 vfx = vel * math.cos(angleOfNormal)
                 vfy = vel * math.sin(angleOfNormal)
                 impulse = b.getMass() * (np.array([vfx, vfy]) - b.getVelocity())
-                force = (impulse / T) * b.getElasticity()
 
-                if (np.linalg.norm(impulse) / b.getMass() < 1):
-                    force = b.getMass() * GRAVITY * np.array([math.sin(angleOfNormal), math.cos(angleOfNormal)])
-                    force *= b.getElasticity() / T
-                print(i, force)
+                if (np.linalg.norm(impulse) / b.getMass() > abs(GRAVITY)): # if impact is strong enough to be a bounce
+                    force = (impulse / T) * b.getElasticity()
+                else: # else ball should roll not bounce
+                    gravityAngle = l.getHeading()
+                    if gravityAngle > math.pi/2 and gravityAngle < math.pi:
+                        gravityAngle += math.pi
+                    force = b.getMass() * GRAVITY * np.array([math.cos(gravityAngle), math.sin(gravityAngle)])
+                    # force = b.getMass() * GRAVITY * np.array([math.sin(angleOfNormal), math.cos(angleOfNormal)])
+                    
                 # if (abs(force[1] + GRAVITY) < 0.00001):
                 #     force[1] = 0
-                    # force = np.array([GRAVITY * math.cos(angleOfNormal), GRAVITY * math.sin(angleOfNormal)])
 
                 particles.append(ax.arrow(*b.getPosition(), *force, 
                     shape='full', head_starts_at_zero=True, width=1, ec="white", fc="red"))
@@ -195,6 +198,6 @@ def animate(i):
 
     return particles
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=10, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, frames=60, interval=1, blit=True, init_func=init)
 plt.show()
 # f.close()
