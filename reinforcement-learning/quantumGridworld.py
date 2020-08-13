@@ -120,6 +120,7 @@ def collapseActionSelectionMethod(qc, qr, cr):
     backend_sim = Aer.get_backend('qasm_simulator')
     result = execute(qc, backend=backend_sim, shots=1024).result()
     counts = result.get_counts(qc)
+    print(counts)
     maxKey = list(counts.keys())[0]
     maxVal = counts[maxKey]
     for k in list(counts.keys()):
@@ -127,7 +128,6 @@ def collapseActionSelectionMethod(qc, qr, cr):
             maxKey = k
             maxVal = counts[k]
     classical_state = maxKey
-
     return classical_state
 
 def q_learning(env, num_episodes, discount_factor=0.9, alpha=0.8):#, epsilon=0.1):
@@ -177,6 +177,7 @@ def q_learning(env, num_episodes, discount_factor=0.9, alpha=0.8):#, epsilon=0.1
             if eigenState in memory:
                 memList = memory[eigenState]
                 action = memList[0]
+                print('>>>', t, action)
                 stateValue = memList[1]
                 nextState = memList[2]
 
@@ -204,6 +205,7 @@ def q_learning(env, num_episodes, discount_factor=0.9, alpha=0.8):#, epsilon=0.1
 
             # print(qc)
             action = collapseActionSelectionMethod(qc, qr, cr)
+            print(t, action)
             nextEigenState, reward, done = env.step(action)
             # print(nextEigenState)
 
