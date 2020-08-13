@@ -15,10 +15,10 @@ class InputType(Enum):
     CAMERA = 2
 
 ''' change these to match the program you wish to call '''
-inputType = InputType.IMAGE
+inputType = InputType.CAMERA
 source = 'C://Users//kisho//Documents//git//projects//image-processing//images//painting.jpg'
 cameraSource = 0
-PROGRAM = selective_coloration
+PROGRAM = gaze_tracking
 
 try:
     PROGRAM.__init__(source)
