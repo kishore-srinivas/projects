@@ -17,7 +17,7 @@ class InputType(Enum):
 ### change these to match the program you wish to call
 # inputType - a selection from the enum above
 # source - the source of the content (only applicable to InputType.IMAGE and InputType.VIDEO)
-# cameraSource - the source of the camera content (0 by default, change if you have more than one webcam connected)
+# cameraSource - the source of the camera content (only applicable to InputType.CAMERA, 0 by default, change if you have more than one webcam connected)
 # PROGRAM - the program to call, one of the imported programs above
 inputType = InputType.CAMERA
 source = 'C://Users//kisho//Documents//git//projects//image-processing//images//painting.jpg'
