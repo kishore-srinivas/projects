@@ -29,5 +29,5 @@ Programs related to motion, including physically realistic bouncing balls, a vis
 <ins>quantum-computing</ins> (complete)<br/>
 Experiments in quantum computing to familiarize myself with libraries and implement basic single-purpose programs, mostly based on courses on Udemy and articles or research papers I read.
 
-<ins>tictactoe</ins> (functioning)<br/>
+<ins>tictactoe</ins> (complete)<br/>
 A human vs computer tictactoe game which the computer will never lose.
