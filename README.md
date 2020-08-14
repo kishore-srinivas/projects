@@ -29,5 +29,8 @@ Programs related to motion, including physically realistic bouncing balls, a vis
 <ins>quantum-computing</ins> (complete)<br/>
 Experiments in quantum computing to familiarize myself with libraries and implement basic single-purpose programs, mostly based on courses on Udemy and articles or research papers I read.
 
+<ins>reinforcement-learning</ins> (functioning)<br/>
+Experiments in reinforcement learning. The gridworld project is implemented from scratch, focusing on the development of two agents, a naive one that learns to associate an action with each position on the board, and a QLearning agent that learns to associate a state-action pair with a reward and solves the grid using epsilon-greedy. Also included are some completed assignments from the Modern RL course on Udemy.
+
 <ins>tictactoe</ins> (complete)<br/>
 A human vs computer tictactoe game which the computer will never lose.
