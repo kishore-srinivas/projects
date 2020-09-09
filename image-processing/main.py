@@ -3,7 +3,6 @@ from enum import Enum
 
 import dominant_colors
 import gaussian_smoothing
-import gaze_tracking
 import lane_detection
 import selective_coloration
 import text_extraction
