@@ -105,7 +105,7 @@ for i in range(NUM_BALLS):
     yPos = FIELD_SIDE_LENGTH
     pos = np.array([xPos, yPos])
     mass = np.random.random() * MAX_MASS
-    radius = mass
+    radius = mass * 2
     elasticity = np.random.normal(loc=0.7, scale=0.1)
     xVel = 0.0
     yVel = np.random.normal(loc=0, scale=0.3) * 3
@@ -122,27 +122,27 @@ ax.grid()
 # stage parameters
 lines = []
 # horizontal lines
-# lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
-# lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
+lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
+lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
 
 # angled lines
-lines.append(Line([-FIELD_SIDE_LENGTH/2, 70], [FIELD_SIDE_LENGTH/8, 50]))
-lines.append(Line([-FIELD_SIDE_LENGTH/8, 10], [FIELD_SIDE_LENGTH/2, 30]))
+# lines.append(Line([-FIELD_SIDE_LENGTH/2, 70], [FIELD_SIDE_LENGTH/8, 50]))
+# lines.append(Line([-FIELD_SIDE_LENGTH/8, 10], [FIELD_SIDE_LENGTH/2, 30]))
 
 # 45deg lines
-lines.append(Line([-30, 70], [10, 30]))
-lines.append(Line([40, 50], [0, 10]))
+# lines.append(Line([-30, 70], [10, 30]))
+# lines.append(Line([40, 50], [0, 10]))
 
 # 30deg lines
-lines.append(Line([10-20*math.sqrt(3), 70], [10, 50]))
-lines.append(Line([40, 50], [-20, -10]))
+# lines.append(Line([10-20*math.sqrt(3), 70], [10, 50]))
+# lines.append(Line([40, 50], [-20, -10]))
 
 # lines.append([0, FIELD_SIDE_LENGTH/2, 10, 50])
 
 # draw the stage from the stage parameters
 for l in lines:
     points = l.getPoints()
-    ax.plot([points[0], points[1]], [points[2], points[3]], 'k-', lw=1)
+    ax.plot([points[0], points[1]], [points[2], points[3]], 'k-', lw=2)
 
 particles = []
 for i in range(len(balls)):
