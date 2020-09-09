@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import math
+import sys
 
 canvas = np.ones((600, 600, 3))
 clearCanvas = np.copy(canvas)
@@ -38,7 +39,7 @@ cv2.setMouseCallback('result', draw)
 while True:
     key = cv2.waitKey(0)
     if key == ord("r"):
-        reflections = reflections * 2
+        reflections *= 2
         alpha = 2 * math.pi / reflections
         print('>>>', reflections)
     elif key == ord("R"):
@@ -54,5 +55,4 @@ while True:
         cv2.imshow('result', canvas)
     elif key == 27:
         cv2.destroyAllWindows()
-        break
-# cv2.waitKey(0)
+        sys.exit()
