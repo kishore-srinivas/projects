@@ -24,10 +24,13 @@ An interface that uses gaze tracking and voice commands to allow the user to nav
 Experiments with image processing using opencv. Most of the programs are implementations of cool features such as selective coloration, lane detection, and text recognition.
 
 <ins>motion</ins> (complete)<br/>
-Programs related to motion, from visualizing and animating a function to the joint-motion project which simulates a different take on pathfinding using machine learning.
+Programs related to motion, including physically realistic bouncing balls, a visualization of the boids flocking algorithm, and the joint-motion project which simulates a different take on pathfinding using machine learning to get a multi jointed arm to reach a specified target point.
 
 <ins>quantum-computing</ins> (complete)<br/>
-Experiments in quantum computing to familiarize myself with libraries and implement basic single-purpose programs, mostly based on courses on Udemy and articles I read.
+Experiments in quantum computing to familiarize myself with libraries and implement basic single-purpose programs, mostly based on courses on Udemy and articles or research papers I read.
 
-<ins>tictactoe</ins> (functioning)<br/>
+<ins>reinforcement-learning</ins> (functioning)<br/>
+Experiments in reinforcement learning. The gridworld project is implemented from scratch, focusing on the development of two agents, a naive one that learns to associate an action with each position on the board, and a QLearning agent that learns to associate a state-action pair with a reward and solves the grid using epsilon-greedy. Also included are some completed assignments from the Modern RL course on Udemy.
+
+<ins>tictactoe</ins> (complete)<br/>
 A human vs computer tictactoe game which the computer will never lose.
