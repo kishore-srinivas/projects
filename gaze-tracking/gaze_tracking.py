@@ -113,3 +113,14 @@ def main(original):
     cv2.namedWindow('result', cv2.WINDOW_NORMAL)
     # cv2.resizeWindow('result', int(np.shape(original)[1]*2), int(np.shape(original)[0]*2))
     cv2.imshow('result', result)
+
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    raise IOError("Cannot open camera")
+while(True):
+    _, img = cap.read()
+    main(img)
+    if (cv2.waitKey(1) == 27):
+        break
+cap.release()
+cv2.destroyAllWindows()
