@@ -24,8 +24,15 @@ class Grid:
         self.setSquare(self.goal, 'G')
         self.wall = (2, 1)
         self.setSquare(self.wall, 'X')
-        self.trap = (1, cols-1)
-        self.setSquare(self.trap, 'T')
+        # self.trap = (1, cols-1)
+        # self.setSquare(self.trap, 'T')
+        for i in range(5):
+            loc = np.random.randint(0, min(rows, cols), 2)
+            pos = (loc[0], loc[1])
+            if self.isEmpty(pos):
+                self.setSquare(pos, 'T')
+            else:
+                i -= 1
         self.deterministic = deterministic
         self.numWalls = numWalls
 

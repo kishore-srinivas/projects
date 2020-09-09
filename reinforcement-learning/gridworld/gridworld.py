@@ -2,7 +2,7 @@ from grid import Grid
 from agent import Agent
 from qagent import QAgent
 
-g = Grid(5, 4)
+g = Grid(10, 6)
 g.draw()
 # a = Agent(g, 0.1)
 
