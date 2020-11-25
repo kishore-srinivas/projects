@@ -2,6 +2,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import cv2
 
 class Ball:
     def __init__(self, pos, mass, radius, elasticity, vel=np.array([0., 0.]), acc=np.array([0., 0.])):
@@ -114,7 +115,7 @@ for i in range(NUM_BALLS):
     balls.append(b)
 
 # create figure
-fig = plt.figure()
+fig = plt.figure(figsize=(8, 6))
 fig.subplots_adjust(left=0, right=1, bottom=0.05, top=0.95)
 ax = fig.add_subplot(111, aspect='equal', autoscale_on=True, xlim=(-1*FIELD_SIDE_LENGTH/2, FIELD_SIDE_LENGTH/2), ylim=(0, FIELD_SIDE_LENGTH))
 ax.grid()
@@ -122,12 +123,12 @@ ax.grid()
 # stage parameters
 lines = []
 # horizontal lines
-lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
-lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
+# lines.append(Line([-FIELD_SIDE_LENGTH/2, 50], [0, 50]))
+# lines.append(Line([0, 30], [FIELD_SIDE_LENGTH/2, 30]))
 
 # angled lines
-# lines.append(Line([-FIELD_SIDE_LENGTH/2, 70], [FIELD_SIDE_LENGTH/8, 50]))
-# lines.append(Line([-FIELD_SIDE_LENGTH/8, 10], [FIELD_SIDE_LENGTH/2, 30]))
+lines.append(Line([-FIELD_SIDE_LENGTH/2, 70], [FIELD_SIDE_LENGTH/8, 50]))
+lines.append(Line([-FIELD_SIDE_LENGTH/8, 10], [FIELD_SIDE_LENGTH/2, 30]))
 
 # 45deg lines
 # lines.append(Line([-30, 70], [10, 30]))
@@ -171,27 +172,47 @@ def animate(j):
                 vParallel = vel * math.cos(theta)
                 vPerpendicular = vel * math.sin(theta)
                 
-                if (vPerpendicular > 2):
-                    vfx = vel * math.cos(angleOfNormal)
-                    vfy = vel * math.sin(angleOfNormal)
-                    impulse = b.getMass() * (np.array([vfx, vfy]) - b.getVelocity())
-                    force = (impulse / T) * b.getElasticity()
-                else:
-                    force = b.getMass() * GRAVITY * np.array([math.cos(angleOfNormal), math.sin(angleOfNormal)])
+                vfx = vel * math.cos(angleOfNormal)
+                vfy = vel * math.sin(angleOfNormal)
+                # impulse = b.getMass() * (np.array([vfx, vfy]) - b.getVelocity())
+                impulseX = b.getMass() * (vfx - b.getVelocity()[0])
+                impulseY = b.getMass() * (vfy - b.getVelocity()[1])
+                force[0] += (impulseX / T) * b.getElasticity() #+ b.getMass() * GRAVITY * np.cos(angleOfNormal)
+                force[1] += (impulseY / T) * b.getElasticity() #+ b.getMass() * GRAVITY * np.sin(angleOfNormal)
+                # if np.sqrt(impulseX**2 + impulseY**2) < 5:
+                force[0] += b.getMass() * GRAVITY * np.cos(angleOfNormal)
+                force[1] += b.getMass() * GRAVITY * np.sin(angleOfNormal)
 
                 # if (abs(GRAVITY - force[1]) < 0.001):
                 #     force[1] = 0.0
-                # particles.append(ax.arrow(*b.getPosition(), 10*math.cos(angleOfNormal), 10*math.sin(angleOfNormal),
-                #     shape='full', head_starts_at_zero=True, width=1, ec="white", fc="green"))
+                particles.append(ax.arrow(*b.getPosition(), vfx, vfy,
+                    shape='full', head_starts_at_zero=True, width=1, ec="white", fc="green"))
+                particles.append(ax.arrow(*b.getPosition(), impulseX, impulseY,
+                    shape='full', head_starts_at_zero=True, width=1, ec="white", fc="orange"))
 
         b.move(force)
         particles.append(ax.plot(*b.getPosition(), 'bo', ms=b.getRadius()/2)[0])
         # particles.append(ax.arrow(*b.getPosition(), *force,
         #             shape='full', head_starts_at_zero=True, width=1, ec="white", fc="red"))        
-        # particles.append(ax.arrow(*b.getPosition(), vel*math.cos(b.getVelocityDirection()), vel*math.sin(b.getVelocityDirection()), 
-        #     shape='full', head_starts_at_zero=True, width=1, ec="white"))
+        particles.append(ax.arrow(*b.getPosition(), vel*math.cos(b.getVelocityDirection()), vel*math.sin(b.getVelocityDirection()), 
+            shape='full', head_starts_at_zero=True, width=1, ec="white"))
 
     return particles
 
 ani = animation.FuncAnimation(fig, animate, frames=30, interval=0.5, blit=True, init_func=init)
+
+import matplotlib
+def move_figure(f, x, y):
+    """Move figure's upper left corner to pixel (x, y)"""
+    backend = matplotlib.get_backend()
+    if backend == 'TkAgg':
+        f.canvas.manager.window.wm_geometry("+%d+%d" % (x, y))
+    elif backend == 'WXAgg':
+        f.canvas.manager.window.SetPosition((x, y))
+    else:
+        # This works for QT and GTK
+        # You can also use window.setGeometry
+        f.canvas.manager.window.move(x, y)
+
+move_figure(fig, 100, 100)
 plt.show()
