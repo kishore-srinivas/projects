@@ -73,14 +73,14 @@ class Bird:
 
 # create birds
 birds = []
-NUM_BIRDS = 3
+NUM_BIRDS = 50
 FIELD_SIDE_LENGTH = 200
 MAX_VEL = 3
-ROI = [50, 2*math.pi/3]
+ROI = [25, 2*math.pi/3]
 MAX_TURN_ANGLE = math.pi/20
 PERSONAL_SPACE = 5
 for i in range(NUM_BIRDS):
-    pos = np.array([-FIELD_SIDE_LENGTH/4, -FIELD_SIDE_LENGTH/4] + ROI[0]*2*np.random.random_sample((2,)))
+    pos = np.array([-FIELD_SIDE_LENGTH/4, -FIELD_SIDE_LENGTH/4] + 50*2*np.random.random_sample((2,)))
     vel = MAX_VEL
     ori = -math.pi/4
     b = Bird(i, pos, vel, ori, ROI, MAX_TURN_ANGLE, PERSONAL_SPACE)
@@ -103,6 +103,91 @@ def animate(i):
     global birds
     global particles
     particles = []
+    for i in range(len(birds)):
+        b = birds[i]
+        count = 0
+
+        b.setTargetHeading(b.getHeading())
+        
+        # if bird has flown off the screen, turn it back towards the origin
+        if (abs(b.getPosition()[0]) > 0.75 * FIELD_SIDE_LENGTH / 2 or
+            abs(b.getPosition()[1]) > 0.75 * FIELD_SIDE_LENGTH / 2):
+            x = b.getPosition()[0]
+            y = b.getPosition()[1]
+            if (x > 0): # quadrant 1 or 4
+                newHeading = np.arctan(y / x) + math.pi
+            else: # quadrant 2 or 3
+                newHeading = np.arctan(y / x)
+            b.setTargetHeading(newHeading) 
+            continue   
+
+        factorsToConsider = {}
+        factorsToConsider['avgHeading'] = b.getHeading()
+        factorsToConsider['angleOfAvgPos'] = b.getHeading()
+        factorsToConsider['angleToAvoidCollision'] = b.getHeading()
+
+        # find birds nearby to influence current bird's actions
+        birdsInRoi = []
+        birdsInPersonalSpace = []
+        for b2 in birds:
+            if (b.getNum() != b2.getNum()):
+                vect1 = b2.getPosition() - b.getPosition()
+                dist = np.linalg.norm(vect1)
+                if (dist <= ROI[0]):
+                    birdsInRoi.append(b2)
+                if (dist <= PERSONAL_SPACE):
+                    birdsInPersonalSpace.append(b2)
+        
+        if (len(birdsInPersonalSpace) > 0):
+            # steer away from birds in close proximity (separation)
+            avgPosInPersonalSpace = sum(b2.getPosition() for b2 in birdsInPersonalSpace) / len(birdsInPersonalSpace)
+            vectToAvgPosInPersonalSpace = avgPosInPersonalSpace - b.getPosition()
+            factorsToConsider['angleToAvoidCollision'] = math.pi + np.arctan2(vectToAvgPosInPersonalSpace[1], vectToAvgPosInPersonalSpace[0])
+
+        if (len(birdsInRoi) > 0):        
+            # align heading with the birds it can see (alignment)
+            # calculates avg heading by summing individual unit vectors and computing the angle from the resulting vector
+            headingUVSX = sum(np.cos(b2.getHeading()) for b2 in birdsInRoi) # heading unit vector sum x
+            headingUVSY = sum(np.sin(b2.getHeading()) for b2 in birdsInRoi) # heading unit vector sum y
+            factorsToConsider['avgHeading'] = np.arctan2(headingUVSY, headingUVSX)
+
+            # steer towards the center of mass of the birds it can see (cohesion)
+            avgPos = sum(b2.getPosition() for b2 in birdsInRoi) / len(birdsInRoi)
+            vectToAvgPos = avgPos - b.getPosition()
+            factorsToConsider['angleOfAvgPos'] = np.arctan2(vectToAvgPos[1], vectToAvgPos[0])
+
+        targetUVSX = targetUVSY = 0 # initialize target unit vector sum x and y
+        for v in factorsToConsider.values():
+            targetUVSX += np.cos(v)
+            targetUVSY += np.sin(v)
+        targetHeading = np.arctan2(targetUVSY, targetUVSX)
+        b.setTargetHeading(targetHeading)
+        
+        if (i != 0):
+            particles.append(ax.arrow(*b.getPosition(), math.cos(b.getHeading()), math.sin(b.getHeading()), 
+                shape='full', head_starts_at_zero=False, width=1, ec="white")) 
+        else:
+            particles.append(ax.arrow(*b.getPosition(), math.cos(b.getHeading()), math.sin(b.getHeading()), 
+                shape='full', head_starts_at_zero=False, width=1, ec="white", fc="red"))
+            particles.append(ax.add_artist(plt.Circle((b.getPosition()[0], b.getPosition()[1]), ROI[0], fill=False))) 
+            particles.append(ax.arrow(*b.getPosition(), 5*math.cos(factorsToConsider['avgHeading']), 5*math.sin(factorsToConsider['avgHeading']), 
+                shape='full', head_starts_at_zero=False, width=1, ec="white", fc="orange"))
+
+            # particles.append(ax.plot(*avgPos, 'bo')[0])
+            # particles.append(ax.arrow(*b.getPosition(), math.cos(angleOfAvgPos), math.sin(angleOfAvgPos), 
+            #     shape='full', head_starts_at_zero=True, width=1, ec="white", fc="green")) 
+            for b2 in birdsInRoi:
+                particles.append(ax.plot([b.getPosition()[0], b2.getPosition()[0]], [b.getPosition()[1], b2.getPosition()[1]], linewidth=0.5, color='green')[0])
+                
+        
+        b.fly()
+
+    return particles
+
+def animate2(i):
+    global birds
+    global particles
+    particles = []
     turnAngles = []
     debug = []
     for i in range(len(birds)):
@@ -110,8 +195,8 @@ def animate(i):
         count = 0
 
         # if bird has flown off the screen, turn it back towards the origin
-        if (abs(b.getPosition()[0]) > 1.1 * FIELD_SIDE_LENGTH / 2 or
-            abs(b.getPosition()[1]) > 1.1 * FIELD_SIDE_LENGTH / 2):
+        if (abs(b.getPosition()[0]) > 0.5 * FIELD_SIDE_LENGTH / 2 or
+            abs(b.getPosition()[1]) > 0.5 * FIELD_SIDE_LENGTH / 2):
             count += 1
             x = b.getPosition()[0]
             y = b.getPosition()[1]
@@ -121,7 +206,7 @@ def animate(i):
             else: # quadrant 2 or 3
                 newHeading = np.arctan(y / x)
             b.setTargetHeading(newHeading)
-            print("{:d} off screen, new target: {:0.3f}".format(b.getNum(), newHeading))
+            # print("{:d} off screen, new target: {:0.3f}".format(b.getNum(), newHeading))
             debug.append([b.getNum(), b.getPosition(), round(newHeading, 3), round(b.getHeading(), 3)])
             b.fly()
             continue
@@ -132,46 +217,39 @@ def animate(i):
         for b2 in birds:
             if (b.getNum() == b2.getNum()):
                 continue
-            vect1 = b.getPosition() - b2.getPosition()
+            vect1 = b2.getPosition() - b.getPosition()
             dist = np.linalg.norm(vect1)
             if (dist <= b.getPersonalSpace()):
                 birdsInPersonalSpace.append(b2)
+            # if (dist <= ROI[0]):
+            #     # check if angle between b and b2 is within tolerance
+            #     thirdPoint = b.getPosition() + 5*np.array([math.cos(b.getHeading()), math.sin(b.getHeading())])
+            #     vect2 = thirdPoint - b.getPosition()
+            #     cosine_angle = np.dot(vect1, vect2) / (np.linalg.norm(vect1) * np.linalg.norm(vect2))
+            #     angle = np.arccos(cosine_angle)
+            #     if (abs(angle) < ROI[1]):
+            #         birdsInRoi.append(b2)
+            #         particles.append(ax.arrow(*b.getPosition(), dist * math.cos(b.getHeading() + angle), dist * math.sin(b.getHeading() + angle), 
+            #             shape='full', head_starts_at_zero=False, width=1, ec="white", fc="blue"))
             if (dist <= ROI[0]):
-                # check if angle between b and b2 is within tolerance
-                thirdPoint = b.getPosition() + np.array([math.cos(b.getHeading()), math.sin(b.getHeading())])
-                vect2 = thirdPoint - b.getPosition()
-                cosine_angle = np.dot(vect1, vect2) / (np.linalg.norm(vect1) * np.linalg.norm(vect2))
-                angle = np.arccos(cosine_angle)
-                if (angle < ROI[1]):
-                    birdsInRoi.append(b2)
+                birdsInRoi.append(b2)
         
         # if any other birds are nearby, adjust heading accordingly
         if (len(birdsInRoi) > 0):
             count += 1
             n = len(birdsInRoi)
-            posSum = np.zeros_like(b.getPosition())
-            headingTotal = 0
-            for b2 in birdsInRoi:
-                posSum += b2.getPosition()
-                headingTotal = (headingTotal + b.getHeading()) % (2*math.pi)
-            avgPos = posSum / n
-            avgLocalHeading = headingTotal / n
+            avgPos = sum(b2.getPosition() for b2 in birdsInRoi) / n
+            avgLocalHeading = (sum(b2.getHeading() for b2 in birdsInRoi) / n) % (2*math.pi)
+            # particles.append(ax.plot(*avgPos, 'bo')[0])
+            # particles.append(ax.arrow(*b.getPosition(), 10 * math.cos(avgLocalHeading), 10 * math.sin(avgLocalHeading), 
+            #     shape='full', head_starts_at_zero=False, width=1, ec="white", fc="red"))
 
-            # firstBird = birdsInRoi[0]
-            # xTotal = firstBird.getPosition()[0]
-            # yTotal = firstBird.getPosition()[1]
-            # headingTotal = firstBird.getHeading()
-            # for j in range(1, n):
-            #     cur = birdsInRoi[j]
-            #     xTotal += cur.getPosition()[0]
-            #     yTotal += cur.getPosition()[1]
-            #     headingTotal += cur.getHeading()
-
-            # avgPos = np.array([xTotal / n, yTotal / n])
             p3 = b.getPosition() + np.array([math.cos(b.getHeading()), math.sin(b.getHeading())])
             vect1 = avgPos - b.getPosition()
             vect2 = p3 - b.getPosition()
             angleToAvgPos = b.getHeading() + np.arccos(np.dot(vect1, vect2) / (np.linalg.norm(vect1) * np.linalg.norm(vect2)))
+            # particles.append(ax.arrow(*b.getPosition(), 10 * math.cos(angleToAvgPos), 10 * math.sin(angleToAvgPos), 
+            #     shape='full', head_starts_at_zero=False, width=1, ec="white", fc="green"))
 
             # avgLocalHeading = (headingTotal / n) % (2*math.pi)
             angleToAvgLocalHeading = b.getHeading() - avgLocalHeading
@@ -201,10 +279,10 @@ def animate(i):
 
         # average the valid conditions to find average turn angle
         # print('count:', count)
-        headingToAvgLocalHeading = b.getHeading() + angleToAvgLocalHeading
-        headingToAvgPos = b.getHeading() + angleToAvgPos
-        headingToAvoidCollision = b.getHeading() + angleToAvoidCollision
-        k1 = 1
+        headingToAvgLocalHeading = angleToAvgLocalHeading
+        headingToAvgPos = angleToAvgPos
+        headingToAvoidCollision = angleToAvoidCollision
+        k1 = 0
         k2 = 0
         k3 = 0
         m = max(k1, k2, k3)
@@ -214,32 +292,33 @@ def animate(i):
             k3 = k3 / m
         except:
             pass
-        if (count == 0):
-            targetHeading = b.getHeading()
-        else:
-            targetHeading = (k1*headingToAvgLocalHeading + k2*headingToAvgPos + k3*headingToAvoidCollision) / count
+        targetHeading = b.getHeading()
+        # if (count == 0):
+        #     targetHeading = b.getHeading()
+        # else:
+        #     targetHeading = (k1*headingToAvgLocalHeading + k2*headingToAvgPos + k3*headingToAvoidCollision) / count
         # targetHeading = math.pi/2
         b.setTargetHeading(targetHeading)
         # print(b.getNum(), 'at', b.getHeading(), 'ordered to', targetHeading)
-        print("{:d}: {:0.3f} -> {:0.3f} | {:d}".format(b.getNum(), b.getHeading(), targetHeading, count))
+        # print("{:d}: {:0.3f} -> {:0.3f} | {:d}".format(b.getNum(), b.getHeading(), targetHeading, count))
 
         # move birds one timestep forward and update the graphic
         b.fly()
-        # particles.append(ax.arrow(*b.getPosition(), 2*math.cos(b.getHeading()), 2*math.sin(b.getHeading()), 
-        #     shape='full', head_starts_at_zero=True, width=1, ec="white"))
+        particles.append(ax.arrow(*b.getPosition(), math.cos(b.getHeading()), math.sin(b.getHeading()), 
+            shape='full', head_starts_at_zero=True, width=1, ec="white"))
         # particles.append(ax.arrow(*b.getPosition(), 2*math.cos(targetHeading), 2*math.sin(targetHeading), 
         #     shape='full', head_starts_at_zero=True, width=1, ec="white", fc="red"))
-        try:
-            # particles.append(ax.plot(*avgPos, 'bo')[0])
-            # particles.append(ax.arrow(*b.getPosition(), *(avgPos - b.getPosition()), 
-            #     shape='full', head_starts_at_zero=False, width=1, ec="white", fc="green"))
-            particles.append(ax.arrow(*b.getPosition(), math.cos(targetHeading), math.sin(targetHeading), 
-                shape='full', head_starts_at_zero=False, width=1, ec="white", fc="red"))
-        except UnboundLocalError:
-            pass
-        particles.append(ax.plot(*b.getPosition(), marker='$'+str(i)+'$', ms=4)[0])
-        particles.append(ax.add_artist(plt.Circle((b.getPosition()[0], b.getPosition()[1]), ROI[0], fill=False)))
-    print('----')
+        # try:
+        #     # particles.append(ax.plot(*avgPos, 'bo')[0])
+        #     # particles.append(ax.arrow(*b.getPosition(), *(avgPos - b.getPosition()), 
+        #     #     shape='full', head_starts_at_zero=False, width=1, ec="white", fc="green"))
+        #     particles.append(ax.arrow(*b.getPosition(), math.cos(targetHeading), math.sin(targetHeading), 
+        #         shape='full', head_starts_at_zero=False, width=1, ec="white", fc="red"))
+        # except UnboundLocalError:
+        #     pass
+        # particles.append(ax.plot(*b.getPosition(), marker='$'+str(i)+'$', ms=4)[0])
+        # particles.append(ax.add_artist(plt.Circle((b.getPosition()[0], b.getPosition()[1]), ROI[0], fill=False)))
+    # print('----')
 
     return particles
 
@@ -249,7 +328,7 @@ def display(i):
         res.append(ax2.text(0, (-b.getNum()-1)*(FIELD_SIDE_LENGTH/(NUM_BIRDS+1)), b.getStatus(), fontsize=6))
     return res
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=1000, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, frames=60, interval=1, blit=True, init_func=init)
 
 # # second window to show debug information
 # fig2 = plt.figure()
