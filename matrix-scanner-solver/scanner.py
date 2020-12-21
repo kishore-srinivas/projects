@@ -2,6 +2,22 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
+def deskew(img):
+    m = cv2.moments(img)
+    if abs(m['mu02']) < 1e-2:
+        # no deskewing needed.
+        return img.copy()
+
+    # Calculate skew based on central momemts.
+    skew = m['mu11']/m['mu02']
+    # Calculate affine transform to correct skewness.
+    M = np.float32([[1, skew, -0.5*skew], [0, 1, 0]])
+    # Apply affine transform
+    rows, cols = img.shape
+    img = cv2.warpAffine(img, M, (cols, rows), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR)
+
+    return img
+
 def calculateBoundingBoxes(img, blur=9):
     # grayscale and blur
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -31,27 +47,37 @@ def clusterBoundingBoxes(boxes, threshX, threshY):
         if not foundX:
             clustersX[x+w] = [(x + w, y)]
         for cy in clustersY.keys():
-            if abs(y - cy) < threshY:
-                clustersY[cy].append((x, y))
+            if abs((y + h) - cy) < threshY:
+                clustersY[cy].append((x, y + h))
                 foundY = True
                 break
         if not foundY:
-            clustersY[y] = [(x, y)]
+            clustersY[y+h] = [(x, y + h)]
 
     return clustersX, clustersY
 
-def identifyMatrixDimension(matrixImage, visualize=False):
+def splitMatrix(matrixImage, visualize=False):
     # recalculate bounding boxes on cropped image
     bb = calculateBoundingBoxes(matrixImage, 21)      
 
     # identify large bounding boxes
-    avgBBSize = np.mean(bb[:,2]*bb[:,3])
-    largeBB = bb[bb[:,2]*bb[:,3] > avgBBSize]      
+    threshBBSize = np.mean(bb[:,2]*bb[:,3]) - 0.5 * np.std(bb[:,2]*bb[:,3])
+    largeBB = bb[bb[:,2]*bb[:,3] > threshBBSize]      
 
     # cluster large bounding boxes along x and y axes
     threshX = matrixImage.shape[1] / 10
     threshY = matrixImage.shape[0] / 10
     clustersX, clustersY = clusterBoundingBoxes(largeBB, threshX, threshY)
+
+    # identify horizontal and vertical splits
+    xSplits = []
+    ySplits = []
+    for cx in clustersX.keys():
+        vals = clustersX[cx]
+        xSplits.append(max(x for x, y in vals))
+    for cy in clustersY.keys():
+        vals = clustersY[cy]
+        ySplits.append(max(y for x, y in vals))
 
     if visualize:
         for x, y, w, h in bb:
@@ -65,27 +91,26 @@ def identifyMatrixDimension(matrixImage, visualize=False):
         print('clustersX')
         for cx in clustersX.keys():
             print(cx)
-            cv2.line(matrixImage, (cx, 0), (cx, matrixImage.shape[0]), (255, 0, 0), 2)
-            # for v in clustersX[cx]:
-            #     print(' ', v)
+            cv2.line(matrixImage, (cx, 0), (cx, matrixImage.shape[0]), (255, 0, 0), 1)
         print()
         print('clustersY')
         for cy in clustersY.keys():
             print(cy)
-            cv2.line(matrixImage, (0, cy), (matrixImage.shape[1], cy), (255, 0, 0), 2)
-            # for v in clustersY[cy]:
-            #     print(' ', v)
+            cv2.line(matrixImage, (0, cy), (matrixImage.shape[1], cy), (255, 0, 0), 1)
 
         print()
         print(len(list(clustersY.keys())), 'x', len(list(clustersX.keys())), 'matrix')
+        cv2.imshow('dimension calculation', matrixImage)
 
-    return (len(list(clustersY.keys())), len(list(clustersX.keys())))
+    return xSplits, ySplits
 
-def __main__():
+def __main__(imgPath):
     # load, grayscale, and blur image
-    orig = cv2.imread('matrices\\matrix4.jpg')
+    orig = cv2.imread(imgPath)
     orig = cv2.resize(orig, (int(orig.shape[1]/2), int(orig.shape[0]/2)))
     im = orig.copy()
+    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    deskewed = deskew(gray)
     boundingBoxes = calculateBoundingBoxes(im)
 
     # find tallest 2 bounding boxes - likely to be left and right brackets
@@ -107,17 +132,15 @@ def __main__():
     cropped = orig[yMin:yMax, xMin:xMax]
 
     # identify matrix dimensions and split image accordingly
-    matrixDims = identifyMatrixDimension(cropped, visualize=True)
-    print('>>>', matrixDims)
-    xSplits = np.linspace(0, cropped.shape[1], matrixDims[1]+1)[1:-1]
-    ySplits = np.linspace(0, cropped.shape[0], matrixDims[0]+1)[1:-1]
-    # for x in xSplits:
-    #     cv2.line(cropped, (int(x), 0), (int(x), cropped.shape[0]), (255, 255, 0), 1)
-    # for y in ySplits:
-    #     cv2.line(cropped, (0, int(y)), (cropped.shape[1], int(y)), (255, 255, 0), 1)
-    cv2.imshow('cropped', cropped)
+    xSplits, ySplits = splitMatrix(cropped.copy(), visualize=False)
+    print(len(ySplits), 'x', len(xSplits))
+    for x in xSplits:
+        cv2.line(cropped, (int(x), 0), (int(x), cropped.shape[0]), (0, 128, 0), 2)
+    for y in ySplits:
+        cv2.line(cropped, (0, int(y)), (cropped.shape[1], int(y)), (0, 128, 0), 2)
+    cv2.imshow('split', cropped)
 
     plt.show()
     cv2.waitKey()
 
-__main__()
+__main__('matrices\\matrix6.jpg')
