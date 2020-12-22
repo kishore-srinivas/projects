@@ -62,14 +62,35 @@ def splitMatrix(matrixImage, visualize=False):
 
     # identify large bounding boxes
     threshBBSize = np.mean(bb[:,2]*bb[:,3]) - 0.5 * np.std(bb[:,2]*bb[:,3])
-    largeBB = bb[bb[:,2]*bb[:,3] > threshBBSize]      
+    threshBBHeight = np.mean(bb[:,3])
+    largeBB = bb[np.logical_or((bb[:,2]*bb[:,3] > threshBBSize), (bb[:,3] > threshBBHeight))]      
 
-    # cluster large bounding boxes along x and y axes
-    threshX = matrixImage.shape[1] / 10
-    threshY = matrixImage.shape[0] / 10
-    clustersX, clustersY = clusterBoundingBoxes(largeBB, threshX, threshY)
-
-    # identify horizontal and vertical splits
+    # determine x and y thresholds for optimal clustering of large bounding boxes, extract matrix dimension from this clustering
+    clusterResults = {}
+    height, width, _ = matrixImage.shape
+    # try a range of x and y threshold values
+    for i in range(2, 10):
+        for j in range(2, 10):
+            threshX = width / i
+            threshY = height / j
+            clustersX, clustersY = clusterBoundingBoxes(largeBB, threshX, threshY)
+            dims = (len(clustersY.keys()), len(clustersX.keys()))
+            if dims in clusterResults.keys():
+                clusterResults[dims].append((threshX, threshY))
+            else:
+                clusterResults[dims] = [(threshX, threshY)]
+    # determine the matrix dimension identified by the most clusters, and use those threshold values for optimal clustering
+    maxCount = 0
+    optimalThreshold = (threshX, threshY)
+    for cr in clusterResults.keys():
+        numVals = len(clusterResults[cr])
+        if numVals > maxCount:
+            maxCount = numVals
+            optimalThreshold = clusterResults[cr][-1]
+            dims = cr        
+    
+    # recalculate clusters with optimal threshold values to identify horizontal and vertical splits
+    clustersX, clustersY = clusterBoundingBoxes(largeBB, *optimalThreshold)
     xSplits = []
     ySplits = []
     for cx in clustersX.keys():
@@ -80,6 +101,10 @@ def splitMatrix(matrixImage, visualize=False):
         ySplits.append(max(y for x, y in vals))
 
     if visualize:
+        for cr in clusterResults.keys():
+            print(cr, len(clusterResults[cr]))
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>', dims)
+
         for x, y, w, h in bb:
             cv2.rectangle(matrixImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
             plt.plot(x, y, 'bo')
@@ -92,11 +117,15 @@ def splitMatrix(matrixImage, visualize=False):
         for cx in clustersX.keys():
             print(cx)
             cv2.line(matrixImage, (cx, 0), (cx, matrixImage.shape[0]), (255, 0, 0), 1)
+            for v in clustersX[cx]:
+                print(' ', v)
         print()
         print('clustersY')
         for cy in clustersY.keys():
             print(cy)
             cv2.line(matrixImage, (0, cy), (matrixImage.shape[1], cy), (255, 0, 0), 1)
+            for v in clustersY[cy]:
+                print(' ', v)
 
         print()
         print(len(list(clustersY.keys())), 'x', len(list(clustersX.keys())), 'matrix')
@@ -132,7 +161,7 @@ def __main__(imgPath):
     cropped = orig[yMin:yMax, xMin:xMax]
 
     # identify matrix dimensions and split image accordingly
-    xSplits, ySplits = splitMatrix(cropped.copy(), visualize=False)
+    xSplits, ySplits = splitMatrix(cropped.copy(), visualize=True)
     print(len(ySplits), 'x', len(xSplits))
     for x in xSplits:
         cv2.line(cropped, (int(x), 0), (int(x), cropped.shape[0]), (0, 128, 0), 2)
@@ -143,4 +172,4 @@ def __main__(imgPath):
     plt.show()
     cv2.waitKey()
 
-__main__('matrices\\matrix6.jpg')
+__main__('matrices\\matrix8.jpg')
