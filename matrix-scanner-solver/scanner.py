@@ -1,28 +1,13 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import sympy as sp
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 from keras.models import load_model
 from keras.models import model_from_json
 import tensorflow as tf
-
-
-def deskew(img):
-    m = cv2.moments(img)
-    if abs(m['mu02']) < 1e-2:
-        # no deskewing needed.
-        return img.copy()
-
-    # Calculate skew based on central momemts.
-    skew = m['mu11']/m['mu02']
-    # Calculate affine transform to correct skewness.
-    M = np.float32([[1, skew, -0.5*skew], [0, 1, 0]])
-    # Apply affine transform
-    rows, cols = img.shape
-    img = cv2.warpAffine(img, M, (cols, rows), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR)
-
-    return img
+import time
 
 def calculateBoundingBoxes(img, blur=9):
     # grayscale and blur
@@ -143,17 +128,19 @@ def splitMatrix(matrixImage, visualize=False):
     return xSplits, ySplits, bb
 
 def __main__(imgPath):
+    startTime = time.time()
     # load, grayscale, and blur image
     orig = cv2.imread(imgPath)
     orig = cv2.resize(orig, (int(orig.shape[1]/2), int(orig.shape[0]/2)))
     im = orig.copy()
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    deskewed = deskew(gray)
     boundingBoxes = calculateBoundingBoxes(im)
+    print(round(time.time() - startTime, 3), 'bounding boxes')
 
     # find tallest 2 bounding boxes - likely to be left and right brackets
     sortedBB = boundingBoxes[boundingBoxes[:,3].argsort()]
     tallBoxes = sortedBB[-2:]
+    print(round(time.time() - startTime, 3), 'brackets')
 
     # plot bounding boxes
     for x, y, w, h in boundingBoxes:
@@ -161,6 +148,7 @@ def __main__(imgPath):
     for x, y, w, h in tallBoxes:
         cv2.rectangle(im, (x, y), (x + w, y + h), (0, 0, 255), 2)
     # cv2.imshow('image', im)
+    print(round(time.time() - startTime, 3), 'plotted bounding boxes')
 
     # crop image to contain just the matrix
     xMin = min(x + w for x, y, w, h in tallBoxes)
@@ -168,23 +156,27 @@ def __main__(imgPath):
     xMax = np.amax(tallBoxes[:, 0])
     yMax = max(y + h for x, y, w, h in tallBoxes)
     cropped = gray[yMin:yMax, xMin:xMax]    
+    cv2.imshow('cropped', cropped)
+    print(round(time.time() - startTime, 3), 'cropped')
 
     # identify matrix dimensions and split image accordingly
-    xSplits, ySplits, boundingBoxes = splitMatrix(cropped.copy(), visualize=False)
+    xSplits, ySplits, _ = splitMatrix(cropped.copy(), visualize=False)
     xSplits = sorted(np.asarray(xSplits).astype(np.uint16))
     ySplits = sorted(np.asarray(ySplits).astype(np.uint16))
     print(len(ySplits), 'x', len(xSplits))
     split = cropped.copy() 
-    for x in xSplits:
-        cv2.line(split, (x, 0), (x, split.shape[0]), (0, 255, 0), 2)
-    for y in ySplits:
-        cv2.line(split, (0, y), (split.shape[1], y), (0, 255, 0), 2)
-    cv2.imshow('split', split)
+    # for x in xSplits:
+    #     cv2.line(split, (x, 0), (x, split.shape[0]), (0, 255, 0), 2)
+    # for y in ySplits:
+    #     cv2.line(split, (0, y), (split.shape[1], y), (0, 255, 0), 2)
+    # cv2.imshow('split', split)
+    print(round(time.time() - startTime, 3), 'matrix dims')
 
-    # split matrix into cells and record ((top-left), (bottom-right)) coords of each cell
+    # split matrix into cells and identify which bounding boxes belong to which cells
     rows = []
     cells = []
-    cellCoords = []
+    cellBBs = []
+    boundingBoxes = calculateBoundingBoxes(cropped)
     xMax = max(xSplits)+1
     prevY = 0
     for y in ySplits:
@@ -192,29 +184,46 @@ def __main__(imgPath):
         prevX = 0
         for x in xSplits:
             c = r[:, prevX:x]
-            cells.append(c)
-            cellCoords.append(((prevY, prevX), (y, x)))
+            cells.append(c)            
+            bbs = []
+            for bbX, bbY, bbW, bbH in boundingBoxes:
+                if ((bbY >= prevY and bbY < y) and (bbX >= prevX and bbX < x)):
+                    bbs.append((bbX - prevX, bbY - prevY, bbW, bbH))
+            cellBBs.append(bbs)
             prevX = x
-            # cv2.imwrite('cell{}.jpg'.format(len(cells)), c)
         rows.append(r)        
         prevY = y
+    print(round(time.time() - startTime, 3), 'split')
 
     for i in range(len(cells)):
         c = cells[i]
-        topLeft, bottomRight = cellCoords[i]
+        bbs = cellBBs[i]
 
         # center digits in cells using bounding boxes
-        for x, y, w, h in boundingBoxes:
-            if ((y > topLeft[0] and y < bottomRight[0]) and (x > topLeft[1] and x < bottomRight[1])):
-                cv2.rectangle(c, (x - topLeft[1], y - topLeft[0]), (x + w - bottomRight[1], y + h - bottomRight[0]), (0, 255, 0), 2)
-        cv2.imshow('cell{}'.format(i+1), c)
+        minX = min(x for x, y, w, h in bbs)
+        minY = min(y for x, y, w, h in bbs)
+        maxX = max(x + w for x, y, w, h in bbs)
+        maxY = max(y + h for x, y, w, h in bbs)
+        # leftSpace = minX
+        # rightSpace = c.shape[1] - maxX
+        # topSpace = minY
+        # bottomSpace = c.shape[0] - maxY
+        # T = np.float32([[1, 0, -(leftSpace - rightSpace)/2], [0, 1, -(topSpace - bottomSpace)/2]])
+        # c = cv2.warpAffine(c, T, (c.shape[0], c.shape[1]), borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255))
+
+        _, c = cv2.threshold(c, 140, 255, cv2.THRESH_BINARY)
+        c = c[minY:maxY, minX:maxX]
 
         # process image to look like MNIST data
-        c = cv2.resize(c, (28, 28))
-        _, c = cv2.threshold(c, 140, 255, cv2.THRESH_BINARY)
-        c = cv2.bitwise_not(c)
+        # c = cv2.resize(c, (45, 45))
+        # _, c = cv2.threshold(c, 140, 255, cv2.THRESH_BINARY)
+        # c = cv2.bitwise_not(c)
+        # c = cv2.GaussianBlur(c, (5, 5), 0)
+        # cv2.imshow('cell{}'.format(i), c)
+        cv2.imwrite('cell{}.jpg'.format(i), c)
 
         cells[i] = c
+    print(round(time.time() - startTime, 3), 'formatted cells')
 
     # load model
     json_file = open('model_final.json', 'r') 
@@ -222,15 +231,23 @@ def __main__(imgPath):
     json_file.close() 
     loaded_model = model_from_json(loaded_model_json) 
     loaded_model.load_weights("model_final.h5")
+    print(round(time.time() - startTime, 3), 'loaded model')
 
-    # run predictions on each cell
-    # for i in range(len(cells)):
-    #     c = cells[i]
-    #     c = c.reshape(1, 28, 28, 1)
-    #     result = np.argmax(loaded_model.predict(c), axis=-1)
-    #     cv2.imshow('cell {}, guess: {}'.format(i+1, result[0]), c)
+    # run and store predictions on each cell
+    numbers = []
+    for i in range(len(cells)):
+        c = cells[i]
+        c = c.reshape(1, 28, 28, 1)
+        result = np.argmax(loaded_model.predict(c), axis=-1)
+        numbers.append(result[0])
+        # cv2.imshow('cell {}, guess: {}'.format(i+1, result[0]), c)
 
-    plt.show()
+    # generate sympy matrix from list of numbers
+    numbers = np.reshape(numbers, (len(ySplits), len(xSplits)))
+    mat = sp.Matrix(numbers)
+    print('mat:', mat)
+
+    # plt.show()
     cv2.waitKey()
 
-__main__('matrices\\matrix6.jpg')
+__main__('matrices\\matrix2.jpg')
