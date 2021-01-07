@@ -4,6 +4,7 @@
 *.exe
 *.pdb
 *.bson
+*.jpg
 *.pyc
 *.targets
 *.props
@@ -15,3 +16,4 @@
 .NETCoreApp,Version=v3.1.AssemblyAttributes.cs
 QuantumHello.AssemblyInfo.cs
 QuantumHello.csproj.FileListAbsolute.txt
+*.png
