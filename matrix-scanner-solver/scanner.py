@@ -214,6 +214,7 @@ def __main__(imgPath):
         _, c = cv2.threshold(c, 140, 255, cv2.THRESH_BINARY)
         c = c[minY:maxY, minX:maxX]
         c = cv2.resize(c, (135, 150))
+        # c = cv2.resize(c, (28, 28))
 
         # process image to look like MNIST data
         # c = cv2.resize(c, (45, 45))
@@ -227,21 +228,24 @@ def __main__(imgPath):
     print(round(time.time() - startTime, 3), 'formatted cells')
 
     # load model
-    json_file = open('model2.json', 'r') 
+    modelName = 'model2'
+    json_file = open('{}.json'.format(modelName), 'r') 
     loaded_model_json = json_file.read() 
     json_file.close() 
     loaded_model = model_from_json(loaded_model_json) 
-    loaded_model.load_weights("model2.h5")
+    loaded_model.load_weights('{}.h5'.format(modelName))
     print(round(time.time() - startTime, 3), 'loaded model')
 
     # run and store predictions on each cell
     numbers = []
     for i in range(len(cells)):
         c = cells[i]
+        d = c.copy()
+        # c = c.reshape(1, *c.shape, 1)
         c = c.reshape(1, 135, 150, 1)
         result = np.argmax(loaded_model.predict(c), axis=-1)
         numbers.append(result[0])
-        # cv2.imshow('cell {}, guess: {}'.format(i+1, result[0]), c)
+        cv2.imshow('cell {}, guess: {}'.format(i+1, result[0]), d)
 
     # generate sympy matrix from list of numbers
     numbers = np.reshape(numbers, (len(ySplits), len(xSplits)))
