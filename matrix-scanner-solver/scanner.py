@@ -209,10 +209,15 @@ def __main__(imgPath):
         # topSpace = minY
         # bottomSpace = c.shape[0] - maxY
         # T = np.float32([[1, 0, -(leftSpace - rightSpace)/2], [0, 1, -(topSpace - bottomSpace)/2]])
-        # c = cv2.warpAffine(c, T, (c.shape[0], c.shape[1]), borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255))
+        # c = cv2.warpAffine(c, T, (c.shape[0], c.shape[1]), borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255))      
 
         _, c = cv2.threshold(c, 140, 255, cv2.THRESH_BINARY)
         c = c[minY:maxY, minX:maxX]
+
+        borderX = int(0.4 * (maxX - minX))
+        borderY = int(0.4 * (maxY - minY))
+        c = cv2.copyMakeBorder(c, borderY, borderY, borderX, borderX, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+
         c = cv2.resize(c, (135, 150))
         # c = cv2.resize(c, (28, 28))
 
@@ -222,7 +227,7 @@ def __main__(imgPath):
         # c = cv2.bitwise_not(c)
         # c = cv2.GaussianBlur(c, (5, 5), 0)
         # cv2.imshow('cell{}'.format(i), c)
-        cv2.imwrite('cell{}.jpg'.format(i), c)
+        # cv2.imwrite('cell{}.jpg'.format(i), c)
 
         cells[i] = c
     print(round(time.time() - startTime, 3), 'formatted cells')
