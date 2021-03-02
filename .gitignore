@@ -16,3 +16,4 @@
 QuantumHello.AssemblyInfo.cs
 QuantumHello.csproj.FileListAbsolute.txt
 *.png
+quantum-computing/*
