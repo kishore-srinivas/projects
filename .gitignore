@@ -17,3 +17,9 @@ QuantumHello.AssemblyInfo.cs
 QuantumHello.csproj.FileListAbsolute.txt
 *.png
 quantum-computing/*
+motion/joint-motion/__pycache__/joint_motion.cpython-37.pyc
+motion/joint-motion/__pycache__/joint_motion.cpython-37.pyc
+tictactoe/__pycache__/board.cpython-37.pyc
+tictactoe/__pycache__/square.cpython-37.pyc
+.vscode/launch.json
+matrix-scanner-solver/.vscode/settings.json
