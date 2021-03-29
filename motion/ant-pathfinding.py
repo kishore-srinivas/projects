@@ -73,7 +73,7 @@ class Ant:
     def getMeals(self):
         return self.meals
 
-NUM_ANTS = 2
+NUM_ANTS = 1
 NUM_FOOD = 10
 FIELD_SIZE = 100
 DIST_POW = 5
@@ -123,13 +123,14 @@ def animate(frame):
             # else pick the next food
             else:
                 probs = []
-                remaining = []
                 for f in foods:
-                    if not f in a.getMeals():
-                        remaining.append(f)
+                    if f in a.getMeals():
+                        probs.append(0)
+                    else:
                         dist = np.linalg.norm(f.getPos() - a.getPos())
                         probs.append((1/dist) ** DIST_POW)
-                nextFood = np.random.choice(remaining, 1, probs)[0]
+                probs = np.array(probs) / sum(probs)
+                nextFood = np.random.choice(foods, 1, p=probs)[0]
                 print(a.getId(), '-->', nextFood.getId())
 
             # set the next food as the ant's target
