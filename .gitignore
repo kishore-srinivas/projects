@@ -26,3 +26,4 @@ matrix-scanner-solver/.vscode/settings.json
 motion/.vscode/.ropeproject/objectdb
 motion/.vscode/.ropeproject/config.py
 motion/.vscode/settings.json
+motion/test.py
