@@ -72,44 +72,18 @@ class Ant:
     def getMeals(self):
         return self.meals
 
-NUM_ANTS = 10
-# NUM_FOOD = 10
+NUM_ANTS = 20
+NUM_FOOD = 10
+NUM_ITERS = 3
 FIELD_SIZE = 100
 DIST_POW = 5
-
-# create figure
-fig = plt.figure(figsize=(6, 5))
-fig.subplots_adjust(left=0, right=1, bottom=0.05, top=0.95)
-ax = fig.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
-ax.grid()
-
-# place ants and foods randomly on the field
-# foods = []
-# for i in range(NUM_FOOD):
-#     randPos = np.array([np.random.randint(0, FIELD_SIZE), np.random.randint(FIELD_SIZE)])
-#     foods.append(Food(randPos, i))
-#     ax.plot(*randPos, 'bo')
-foods = []
-foods.append(Food(np.array([25, 25]), 0))
-foods.append(Food(np.array([50, 50]), 1))
-foods.append(Food(np.array([50, 25]), 2))
-foods.append(Food(np.array([25, 50]), 3))
-foods.append(Food(np.array([75, 50]), 4))
-foods.append(Food(np.array([75, 25]), 5))
-ants = []
-for i in range(NUM_ANTS):
-    randFood = np.random.choice(foods)
-    pos = randFood.getPos()
-    ants.append(Ant(pos, i))
-    print(i, 'starts at', randFood.getId())
 
 def init():
     members = []
     return members
 
-antsFinishedExploring = []
 def animate(frame):
-    global antsFinishedExploring
+    global antsFinishedExploring, pheromoneTrails, startFoodIds
     members = []
 
     for a in ants:
@@ -119,6 +93,11 @@ def animate(frame):
         
         nextFood = a.getTarget()
         if nextFood == None:
+            # find the id of the food the ant is currently at
+            curFoodId = startFoodIds[a.getId()]
+            if (len(a.getMeals()) > 0):
+                curFoodId = a.getMeals()[-1].getId()
+
             # calculate the weighted distribution for the foods
             probs = []
             for f in foods:
@@ -126,6 +105,7 @@ def animate(frame):
                     probs.append(0)
                 else:
                     dist = np.linalg.norm(f.getPos() - a.getPos())
+                    pheromone = pheromoneTrails.get(curFoodId, {}).get(f.getId(), 0)
                     if (dist < 0.001):
                         probs.append(0)
                     else:
@@ -178,12 +158,13 @@ def animate(frame):
             for i in range(1, len(nodes)):
                 ax2.plot([nodes[i-1][0], nodes[i][0]], [nodes[i-1][1], nodes[i][1]], colors[j % len(colors)] + '-', lw=1)
                 pathLength += np.linalg.norm(nodes[i-1] - nodes[i])
-            print(a.getId(), [m.getId() for m in a.getMeals()], pathLength)
+            print(startFoodIds[a.getId()], '-->', [m.getId() for m in a.getMeals()], pathLength)
+
+            # TODO: update pheromones based on path lengths
             
         for f in foods:
             ax2.plot(*f.getPos(), 'bo')
             ax2.text(*f.getPos(), f.getId())
-        ax2.plot(*a.getStartPos(), 'gs')
 
         ax2.grid()
         plt.show()
@@ -191,5 +172,47 @@ def animate(frame):
 
     return members
 
-ani = animation.FuncAnimation(fig, animate, frames=60, interval=1, blit=True, init_func=init)
-plt.show()
+# place foods on the field
+# foods = []
+# for i in range(NUM_FOOD):
+#     randPos = np.array([np.random.randint(0, FIELD_SIZE), np.random.randint(FIELD_SIZE)])
+#     foods.append(Food(randPos, i))
+foods = []
+foods.append(Food(np.array([25, 25]), 0))
+foods.append(Food(np.array([50, 50]), 1))
+foods.append(Food(np.array([50, 25]), 2))
+foods.append(Food(np.array([25, 50]), 3))
+foods.append(Food(np.array([75, 50]), 4))
+foods.append(Food(np.array([75, 25]), 5))
+
+# initialize all pheromone trails to 0
+pheromoneTrails = {}
+for f1 in foods:
+    entry = {}
+    for f2 in foods:
+        entry[f2.getId()] = 0
+    pheromoneTrails[f1.getId()] = entry
+
+# run iterations
+for i in range(NUM_ITERS):
+    # create figure
+    fig = plt.figure(figsize=(6, 5))
+    fig.subplots_adjust(left=0, right=1, bottom=0.05, top=0.95)
+    ax = fig.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
+    ax.grid()
+
+    # plot foods on grid
+
+    # place ants randomly on the field  
+    startFoodIds = {}
+    ants = []
+    for i in range(NUM_ANTS):
+        randFood = np.random.choice(foods)
+        pos = randFood.getPos()
+        ants.append(Ant(pos, i))
+        startFoodIds[i] = randFood.getId()
+
+    antsFinishedExploring = []
+
+    ani = animation.FuncAnimation(fig, animate, frames=60, interval=0.5, blit=True, init_func=init)
+    plt.show()
