@@ -17,7 +17,7 @@ class Food:
         return self.id
 
 class Ant:
-    def __init__(self, pos, id, theta = np.pi/4, speed = 3, reach = 3):
+    def __init__(self, pos, id, theta = np.pi/4, speed = 5, reach = 3):
         self.pos = pos.astype(np.float64)
         self.startPos = pos
         self.theta = theta
@@ -43,7 +43,6 @@ class Ant:
 
     def eat(self, food):
         self.meals.append(food)
-        print(self.getId(), 'eating', food.getId())
         self.target = None
 
     def getTarget(self):
@@ -73,8 +72,8 @@ class Ant:
     def getMeals(self):
         return self.meals
 
-NUM_ANTS = 1
-NUM_FOOD = 10
+NUM_ANTS = 10
+# NUM_FOOD = 10
 FIELD_SIZE = 100
 DIST_POW = 5
 
@@ -85,53 +84,62 @@ ax = fig.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZ
 ax.grid()
 
 # place ants and foods randomly on the field
+# foods = []
+# for i in range(NUM_FOOD):
+#     randPos = np.array([np.random.randint(0, FIELD_SIZE), np.random.randint(FIELD_SIZE)])
+#     foods.append(Food(randPos, i))
+#     ax.plot(*randPos, 'bo')
+foods = []
+foods.append(Food(np.array([25, 25]), 0))
+foods.append(Food(np.array([50, 50]), 1))
+foods.append(Food(np.array([50, 25]), 2))
+foods.append(Food(np.array([25, 50]), 3))
+foods.append(Food(np.array([75, 50]), 4))
+foods.append(Food(np.array([75, 25]), 5))
 ants = []
 for i in range(NUM_ANTS):
-    randPos = np.array([np.random.randint(0, FIELD_SIZE), np.random.randint(FIELD_SIZE)])
-    ants.append(Ant(randPos, i))
-    ax.plot(*randPos, 'gs')
-foods = []
-for i in range(NUM_FOOD):
-    randPos = np.array([np.random.randint(0, FIELD_SIZE), np.random.randint(FIELD_SIZE)])
-    foods.append(Food(randPos, i))
-    ax.plot(*randPos, 'bo')
-eatenFoods = []
+    randFood = np.random.choice(foods)
+    pos = randFood.getPos()
+    ants.append(Ant(pos, i))
+    print(i, 'starts at', randFood.getId())
 
-# init function
 def init():
     members = []
     return members
 
-antsReturnedHome = 0
-# animate function, called repeatedly
+antsFinishedExploring = []
 def animate(frame):
-    global antsReturnedHome
+    global antsFinishedExploring
     members = []
 
     for a in ants:
+        # if this ant has finished exploring, skip it
+        if (a.getId() in antsFinishedExploring):
+            continue
+        
         nextFood = a.getTarget()
-
         if nextFood == None:
-            # if this ant has visited all foods, return home
-            if (len(a.getMeals()) >= len(foods)):
-                nextFood = Food(a.getStartPos())
-                # if at home, continue to next ant
-                if (np.linalg.norm(nextFood.getPos() - a.getPos()) < a.getReach()):
-                    print(a.getId(), 'returned home')
-                    antsReturnedHome += 1
-                    continue
-            # else pick the next food
-            else:
-                probs = []
-                for f in foods:
-                    if f in a.getMeals():
+            # calculate the weighted distribution for the foods
+            probs = []
+            for f in foods:
+                if f in a.getMeals():
+                    probs.append(0)
+                else:
+                    dist = np.linalg.norm(f.getPos() - a.getPos())
+                    if (dist < 0.001):
                         probs.append(0)
                     else:
-                        dist = np.linalg.norm(f.getPos() - a.getPos())
                         probs.append((1/dist) ** DIST_POW)
-                probs = np.array(probs) / sum(probs)
-                nextFood = np.random.choice(foods, 1, p=probs)[0]
-                print(a.getId(), '-->', nextFood.getId())
+            
+            # if this ant has visited all foods stop working on this ant
+            if (sum(probs) == 0):
+                antsFinishedExploring.append(a.getId())
+                continue
+
+            # pick the next food from the weighted dist
+            probs = np.array(probs) / sum(probs)
+            nextFood = np.random.choice(foods, 1, p=probs)[0]
+            # print(a.getId(), '-->', nextFood.getId())
 
             # set the next food as the ant's target
             a.setTarget(nextFood)
@@ -149,37 +157,34 @@ def animate(frame):
 
     # plot the foods
     for f in foods:
-        members.append(ax.plot(*f.getPos(), 'bo')[0])
-    for ef in eatenFoods:
-        members.append(ax.plot(*ef.getPos(), 'kx')[0])
+        members.append(ax.plot(*f.getPos(), 'bo')[0])        
 
     # if all ants are home, plot the paths they took
-    if (antsReturnedHome >= len(ants)):
+    if (len(antsFinishedExploring) >= NUM_ANTS):
         plt.close(fig)
         fig2 = plt.figure(figsize=(6, 5))
         fig2.subplots_adjust(left=0, right=1, bottom=0.05, top=0.95)
         ax2 = fig2.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
 
         colors = ['r', 'g', 'b', 'k']
-        for j in range(len(ants)):
+        for j in range(NUM_ANTS):
             a = ants[j]
 
             nodes = [m.getPos() for m in a.getMeals()]
             nodes.append(a.getStartPos())
             nodes.insert(0, a.getStartPos())
-            
-            ax2.plot(*a.getStartPos(), 'gs')
+
+            pathLength = 0 
             for i in range(1, len(nodes)):
-                ax2.arrow(nodes[i-1][0], nodes[i-1][1], nodes[i][0] - nodes[i-1][0], nodes[i][1] - nodes[i-1][1],
-                    shape='full', length_includes_head=True, head_starts_at_zero=True, width=0.1, ec=colors[j], fc=colors[j])
-
-            # ax2.plot([a.getStartPos()[0], a.getMeals()[0].getPos()[0]], [a.getStartPos()[1], a.getMeals()[0].getPos()[1]], colors[j] + '-', lw=1)
-            # for i in range(1, len(a.getMeals())):
-            #     ax2.plot([a.getMeals()[i-1].getPos()[0], a.getMeals()[i].getPos()[0]], [a.getMeals()[i-1].getPos()[1], a.getMeals()[i].getPos()[1]], colors[j] + '-', lw=1)
-            # ax2.plot([a.getMeals()[-1].getPos()[0], a.getStartPos()[0]], [a.getMeals()[-1].getPos()[1], a.getStartPos()[1]], colors[j] + '-', lw=1)
-
+                ax2.plot([nodes[i-1][0], nodes[i][0]], [nodes[i-1][1], nodes[i][1]], colors[j % len(colors)] + '-', lw=1)
+                pathLength += np.linalg.norm(nodes[i-1] - nodes[i])
+            print(a.getId(), [m.getId() for m in a.getMeals()], pathLength)
+            
         for f in foods:
             ax2.plot(*f.getPos(), 'bo')
+            ax2.text(*f.getPos(), f.getId())
+        ax2.plot(*a.getStartPos(), 'gs')
+
         ax2.grid()
         plt.show()
         return []
