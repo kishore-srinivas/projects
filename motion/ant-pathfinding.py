@@ -77,7 +77,7 @@ NUM_FOOD = 10
 NUM_ITERS = 10
 FIELD_SIZE = 100
 DIST_POW = 3 # how much to favor closer foods while picking the next target 
-PHEROMONE_POW = 7 # how much to consider pheromone trails when picking the next target
+PHEROMONE_POW = 5 # how much to consider pheromone trails when picking the next target
 LENGTH_POW = 5 # how much to punish longer paths when laying down pheromones
 
 def init():
@@ -211,7 +211,17 @@ for i in range(NUM_FOOD):
 # foods.append(Food(np.array([50, 25]), 2))
 # foods.append(Food(np.array([25, 50]), 3))
 # foods.append(Food(np.array([75, 50]), 4))
-# foods.append(Food(np.array([75, 25]), 5))
+# foods.append(Food(np.array([75, 25]), 5)) # min path length should be 150
+# foods = []
+# foods.append(Food(np.array([25, 35]), 0))
+# foods.append(Food(np.array([25, 60]), 1))
+# foods.append(Food(np.array([25, 85]), 2))
+# foods.append(Food(np.array([50, 85]), 3))
+# foods.append(Food(np.array([75, 85]), 4))
+# foods.append(Food(np.array([75, 60]), 5))
+# foods.append(Food(np.array([50, 60]), 6))
+# foods.append(Food(np.array([50, 35]), 7))
+# foods.append(Food(np.array([75, 35]), 8)) # min path length should be 235.35
 
 # initialize all pheromone trails to 0
 pheromoneTrails = {}
