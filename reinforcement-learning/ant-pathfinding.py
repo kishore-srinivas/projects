@@ -72,7 +72,7 @@ class Ant:
     def getMeals(self):
         return self.meals
 
-NUM_ANTS = 5
+NUM_ANTS = 20
 NUM_FOOD = 10
 NUM_ITERS = 10
 FIELD_SIZE = 100
@@ -171,7 +171,7 @@ def postRun():
         for i in range(1, len(nodes)):
             ax2.plot([nodes[i-1][0], nodes[i][0]], [nodes[i-1][1], nodes[i][1]], colors[j % len(colors)] + '-', lw=1)
             pathLength += np.linalg.norm(nodes[i-1] - nodes[i])
-        print(startFoodIds[a.getId()], '-->', [m.getId() for m in a.getMeals()], pathLength)
+        # print(startFoodIds[a.getId()], '-->', [m.getId() for m in a.getMeals()], pathLength)
         pathLengths.append(pathLength)
 
     # update pheromones based on path lengths
