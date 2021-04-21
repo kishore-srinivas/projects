@@ -85,8 +85,11 @@ def init():
     return members
 
 def animate(frame):
-    global antsFinishedExploring, pheromoneTrails, startFoodIds, shortestPathLengthFound
+    global antsFinishedExploring, pheromoneTrails, startFoodIds, shortestPathLengthFound, pathsDisplayed
     members = []
+
+    if pathsDisplayed:
+        return members
 
     for a in ants:
         # if this ant has finished exploring, skip it
@@ -108,8 +111,6 @@ def animate(frame):
                 else:
                     dist = np.linalg.norm(f.getPos() - a.getPos())
                     pheromone = (pheromoneTrails[curFoodId][f.getId()] ** PHEROMONE_POW) * dist
-                    # print(dist, pheromone)
-                    # pheromone = 0
                     if (dist < 0.001):
                         probs.append(pheromone)
                     else:
@@ -117,7 +118,6 @@ def animate(frame):
                             ((1/dist) ** DIST_POW) + 
                             (pheromone)
                         )
-            # print(probs)
             
             # if this ant has visited all foods stop working on this ant
             if (sum(probs) == 0):
@@ -126,7 +126,6 @@ def animate(frame):
 
             # pick the next food from the weighted dist
             probs = np.array(probs) / sum(probs)
-            # print(probs)
             nextFood = np.random.choice(foods, 1, p=probs)[0]
 
             # set the next food as the ant's target
@@ -145,6 +144,7 @@ def animate(frame):
 
     # if all ants are home, plot the paths they took
     if (len(antsFinishedExploring) >= NUM_ANTS):
+        pathsDisplayed = True
         postRun()
         return []
 
@@ -152,11 +152,6 @@ def animate(frame):
 
 # plot ant paths and lay pheromone trails, called after all ants have visited all foods
 def postRun():
-    plt.close(fig)
-    fig2 = plt.figure('Paths', figsize=(6, 5))
-    fig2.subplots_adjust(left=0, right=1, bottom=0.05, top=0.95)
-    ax2 = fig2.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
-
     colors = ['r', 'g', 'b', 'k']
     pathLengths = []
 
@@ -171,7 +166,6 @@ def postRun():
         for i in range(1, len(nodes)):
             ax2.plot([nodes[i-1][0], nodes[i][0]], [nodes[i-1][1], nodes[i][1]], colors[j % len(colors)] + '-', lw=1)
             pathLength += np.linalg.norm(nodes[i-1] - nodes[i])
-        # print(startFoodIds[a.getId()], '-->', [m.getId() for m in a.getMeals()], pathLength)
         pathLengths.append(pathLength)
 
     # update pheromones based on path lengths
@@ -188,16 +182,12 @@ def postRun():
         for k in range(len(meals) - 1):
             fromMeal = meals[k]
             toMeal = meals[k+1]
-            pheromoneTrails[fromMeal.getId()][toMeal.getId()] += pheromoneStrength #* np.linalg.norm(toMeal.getPos() - fromMeal.getPos())
-
-    # import json
-    # print(json.dumps(pheromoneTrails, indent=2))
+            pheromoneTrails[fromMeal.getId()][toMeal.getId()] += pheromoneStrength 
         
     for f in foods:
         ax2.plot(*f.getPos(), 'bo')
         ax2.text(*f.getPos(), f.getId())
 
-    ax2.grid()
     plt.show()
 
 # place foods on the field
@@ -235,10 +225,12 @@ shortestPathLengthFound = np.inf
 # run iterations
 for i in range(NUM_ITERS):
     # create figure
-    fig = plt.figure('Run {}/{}'.format(i+1, NUM_ITERS), figsize=(6, 5))    
+    fig = plt.figure('Run {}/{}'.format(i+1, NUM_ITERS), figsize=(12, 5))    
     fig.subplots_adjust(left=0, right=1, bottom=0.05, top=0.95)
-    ax = fig.add_subplot(111, aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
+    ax = fig.add_subplot(121, title='Field', aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
     ax.grid()
+    ax2 = fig.add_subplot(122, title='Paths', aspect='equal', autoscale_on=False, xlim=(0, FIELD_SIZE), ylim=(0, FIELD_SIZE))
+    ax2.grid()
 
     # plot foods on grid
     for f in foods:
@@ -265,6 +257,7 @@ for i in range(NUM_ITERS):
         startFoodIds[i] = randFood.getId()
 
     antsFinishedExploring = []
+    pathsDisplayed = False
 
     ani = animation.FuncAnimation(fig, animate, frames=60, interval=1, blit=True, init_func=init)
     plt.show()
